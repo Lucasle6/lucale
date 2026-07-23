@@ -11,17 +11,20 @@ seguridad — seguimos a quien ya la resolvió.
 ## Autenticación
 
 ### 1 · Hashing con argon2id · Día 4
+
 Parámetros OWASP: `m=19456 KiB`, `t=2`, `p=1`, salt de 16 bytes.
 
 **Detiene:** que un volcado de la base de datos se convierta en contraseñas en texto plano.
 argon2id resiste ataques con GPU, que es donde bcrypt empieza a mostrar su edad.
 
 ### 2 · Tokens de acceso cortos + refresh rotativo · Día 4
+
 Access token JWT de 15 min. Refresh token opaco de 30 días que **rota en cada uso**.
 
 **Detiene:** que un token robado sirva indefinidamente. La ventana de daño es de minutos.
 
 ### 3 · Detección de reuso de refresh token · Día 4
+
 Si llega un refresh token ya rotado → se revoca la **familia entera** de sesiones.
 
 **Detiene:** el robo de sesión. Cuando el atacante y el usuario legítimo usan la misma
@@ -29,6 +32,7 @@ cadena de tokens, uno de los dos presentará uno viejo — y ahí los expulsamos
 usuario vuelve a entrar; el atacante no puede.
 
 ### 4 · 2FA TOTP obligatorio para administradores · Día 5
+
 `otplib`, ventana de ±1 periodo, secreto cifrado en reposo, 10 códigos de respaldo de un
 solo uso.
 
@@ -36,12 +40,14 @@ solo uso.
 mejor relación beneficio/esfuerzo de toda la lista.
 
 ### 5 · Sin enumeración de usuarios · Día 4
+
 El mismo mensaje y el mismo tiempo de respuesta ante email inexistente o contraseña
 incorrecta (hash simulado en la rama negativa para igualar la latencia).
 
 **Detiene:** que alguien construya la lista de tus clientes probando emails.
 
 ### 6 · Bloqueo progresivo de cuenta · Día 4
+
 5 intentos fallidos → 15 min de bloqueo, con backoff exponencial.
 
 **Detiene:** fuerza bruta contra una cuenta concreta.
@@ -51,6 +57,7 @@ incorrecta (hash simulado en la rama negativa para igualar la latencia).
 ## Sesión y transporte
 
 ### 7 · Cookies endurecidas · Día 4
+
 `__Host-` prefix · `httpOnly` · `Secure` · `SameSite=Strict` · `Path=/`
 
 **Detiene:** que JavaScript lea el token (XSS), que viaje por HTTP plano, y que se envíe
@@ -58,6 +65,7 @@ desde otro sitio (CSRF). El prefijo `__Host-` impide además que un subdominio c
 sobrescriba la cookie.
 
 ### 8 · Aislamiento de admin en subdominio · Día 8
+
 Cookie de admin con `Domain=admin.bodegon.mx`, audiencia de JWT `aud: "admin"`, y una
 aplicación Next.js **distinta**.
 
@@ -65,6 +73,7 @@ aplicación Next.js **distinta**.
 siquiera al navegador de un cliente. Es tu requisito original, implementado en tres capas.
 
 ### 9 · Protección CSRF double-submit · Día 12
+
 Token en cookie + header `X-CSRF-Token` en toda mutación, comparados con
 `timingSafeEqual`.
 
@@ -72,6 +81,7 @@ Token en cookie + header `X-CSRF-Token` en toda mutación, comparados con
 cubre casi todo; esto es defensa en profundidad.
 
 ### 10 · HSTS + TLS obligatorio · Día 15
+
 `max-age=31536000; includeSubDomains; preload`.
 
 **Detiene:** downgrade a HTTP y ataques de intermediario.
@@ -81,6 +91,7 @@ cubre casi todo; esto es defensa en profundidad.
 ## Entrada y salida de datos
 
 ### 11 · Validación con Zod en cada frontera · Día 3
+
 Whitelist estricta, nunca blacklist. El mismo esquema valida en el cliente (UX) y en el
 servidor (seguridad).
 
@@ -88,12 +99,14 @@ servidor (seguridad).
 del cliente es para el usuario, la del servidor es para el atacante**. Nunca sustituye.
 
 ### 12 · Consultas parametrizadas siempre · Día 2
+
 Prisma parametriza por defecto. Todo `$queryRaw` va con template tag, jamás con
 concatenación de strings.
 
 **Detiene:** SQL injection.
 
 ### 13 · Validación real de archivos subidos · Día 7
+
 Magic bytes (no la extensión ni el `Content-Type`), límite de 5 MB, renombrado a UUID,
 servido desde un dominio separado.
 
@@ -101,6 +114,7 @@ servido desde un dominio separado.
 no según el nombre.
 
 ### 14 · CSP estricta con nonces · Día 12
+
 `default-src 'self'`, sin `unsafe-inline`, nonce por request.
 
 **Detiene:** que un XSS que se cuele llegue a ejecutar algo útil. Es la última línea de
@@ -111,26 +125,30 @@ defensa cuando todo lo demás falló.
 ## Autorización
 
 ### 15 · RBAC verificado en el servidor · Día 5
+
 Middleware por rol en cada ruta protegida. El frontend **oculta**, el backend **prohíbe**.
 
 **Detiene:** escalada de privilegios. Esconder un botón no es seguridad; es decoración.
 
 ### 16 · Comprobación de propiedad en cada recurso (anti-IDOR) · Día 12
+
 `/api/orders/:id` verifica que la orden pertenece al usuario autenticado, siempre.
 
 **Detiene:** IDOR — la vulnerabilidad más común del OWASP Top 10 y la más fácil de
 introducir por descuido. Sin esto, cambiar un número en la URL expone las compras de todos.
 
 ### 17 · Audit log de acciones administrativas · Día 5
+
 Append-only: actor, acción, entidad, IP, user-agent, timestamp.
 
-**Detiene:** no previene, pero permite responder *quién hizo qué* — y disuade al insider.
+**Detiene:** no previene, pero permite responder _quién hizo qué_ — y disuade al insider.
 
 ---
 
 ## Dinero
 
 ### 18 · Los precios solo salen de la base de datos · Día 10
+
 El cliente manda `variantId` y `quantity`. Nada más. El servidor busca precios, calcula
 subtotal, envío, impuestos y total.
 
@@ -138,6 +156,7 @@ subtotal, envío, impuestos y total.
 comprará tu catálogo a un centavo. Es la vulnerabilidad más cara de un e-commerce.
 
 ### 19 · Firma e idempotencia de webhooks · Día 11–12
+
 Verificación de firma con el secreto de Stripe, sobre el **cuerpo crudo** (no parseado), y
 tabla `WebhookEvent` con `externalId` único.
 
@@ -145,6 +164,7 @@ tabla `WebhookEvent` con `externalId` único.
 legítimo de Stripe duplique la orden.
 
 ### 20 · Datos de tarjeta fuera de nuestro alcance · Día 11
+
 Stripe Checkout hospedado. Nunca vemos, transmitimos ni almacenamos un número de tarjeta.
 
 **Detiene:** todo el problema. Nos deja en PCI DSS SAQ-A, el nivel más liviano.
@@ -153,15 +173,15 @@ Stripe Checkout hospedado. Nunca vemos, transmitimos ni almacenamos un número d
 
 ## Higiene continua
 
-| Práctica | Cuándo |
-|---|---|
-| Secretos fuera de git, validados con Zod al arrancar | Día 1 |
-| `pnpm audit` en CI, bloqueando el merge en severidad alta | Día 14 |
-| Logs con redacción de PII (`pino.redact`) | Día 3 |
-| Rate limiting global 100 req/min · login 5/15 min | Día 3–4 |
-| Helmet: `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` | Día 3 |
-| Errores genéricos al cliente, detalle solo en el log | Día 3 |
-| Dependabot activo | Día 14 |
+| Práctica                                                      | Cuándo  |
+| ------------------------------------------------------------- | ------- |
+| Secretos fuera de git, validados con Zod al arrancar          | Día 1   |
+| `pnpm audit` en CI, bloqueando el merge en severidad alta     | Día 14  |
+| Logs con redacción de PII (`pino.redact`)                     | Día 3   |
+| Rate limiting global 100 req/min · login 5/15 min             | Día 3–4 |
+| Helmet: `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy` | Día 3   |
+| Errores genéricos al cliente, detalle solo en el log          | Día 3   |
+| Dependabot activo                                             | Día 14  |
 
 ---
 
@@ -187,7 +207,7 @@ vivo**, no tras leer el código.
 
 ---
 
-## Lo que este proyecto *no* cubre
+## Lo que este proyecto _no_ cubre
 
 Honestidad de alcance — decirlo tú antes de que te lo pregunten vale más que omitirlo:
 

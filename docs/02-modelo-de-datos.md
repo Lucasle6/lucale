@@ -118,18 +118,18 @@ Cada acción administrativa deja rastro. Es append-only: nadie lo edita, ni el a
 
 ## Índices deliberados
 
-| Tabla | Índice | Para qué |
-|---|---|---|
-| `User` | `email` (único) | login |
-| `Product` | `slug` (único) | ficha de producto por URL |
-| `Product` | `(status, categoryId)` | listado filtrado de la tienda |
-| `ProductVariant` | `sku` (único) | búsqueda en admin |
-| `ProductVariant` | `productId` | cargar variantes de una ficha |
-| `Order` | `orderNumber` (único) | consulta del cliente |
-| `Order` | `(userId, placedAt DESC)` | historial de pedidos |
-| `RefreshToken` | `tokenHash` (único) | validación en cada refresh |
-| `RefreshToken` | `familyId` | revocación en cascada |
-| `WebhookEvent` | `externalId` (único) | idempotencia |
+| Tabla            | Índice                    | Para qué                      |
+| ---------------- | ------------------------- | ----------------------------- |
+| `User`           | `email` (único)           | login                         |
+| `Product`        | `slug` (único)            | ficha de producto por URL     |
+| `Product`        | `(status, categoryId)`    | listado filtrado de la tienda |
+| `ProductVariant` | `sku` (único)             | búsqueda en admin             |
+| `ProductVariant` | `productId`               | cargar variantes de una ficha |
+| `Order`          | `orderNumber` (único)     | consulta del cliente          |
+| `Order`          | `(userId, placedAt DESC)` | historial de pedidos          |
+| `RefreshToken`   | `tokenHash` (único)       | validación en cada refresh    |
+| `RefreshToken`   | `familyId`                | revocación en cascada         |
+| `WebhookEvent`   | `externalId` (único)      | idempotencia                  |
 
 ---
 
@@ -138,6 +138,7 @@ Cada acción administrativa deja rastro. Es append-only: nadie lo edita, ni el a
 Dos operaciones **deben** ir dentro de una transacción, o el sistema pierde dinero:
 
 **1. Confirmación de pago** (webhook `checkout.session.completed`)
+
 ```
 BEGIN
   registrar WebhookEvent          ← falla si es duplicado, y aborta todo

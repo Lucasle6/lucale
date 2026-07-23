@@ -1,7 +1,7 @@
 # Arquitectura — Bodegón de José
 
-Cada decisión con su porqué y su costo. En una defensa no te preguntan *qué* usaste, te
-preguntan *por qué*.
+Cada decisión con su porqué y su costo. En una defensa no te preguntan _qué_ usaste, te
+preguntan _por qué_.
 
 ---
 
@@ -51,7 +51,7 @@ bodegon-de-jose/
 
 ### Monorepo con pnpm workspaces
 
-**Por qué.** Los esquemas Zod de `packages/shared` los importan la API *y* los formularios
+**Por qué.** Los esquemas Zod de `packages/shared` los importan la API _y_ los formularios
 del frontend. Un cambio de contrato rompe la compilación de ambos lados al instante, en vez
 de fallar en producción.
 
@@ -84,7 +84,7 @@ mutaciones directas a la DB.
 
 ### `apps/admin` como aplicación independiente
 
-**Por qué.** Este es tu requisito de que los clientes no vean *nada* del dashboard, llevado
+**Por qué.** Este es tu requisito de que los clientes no vean _nada_ del dashboard, llevado
 a su conclusión lógica. En un solo Next.js, aunque protejas las rutas, el JavaScript del
 admin puede terminar en el bundle público y las rutas son descubribles. Como app separada
 en otro subdominio, **el código simplemente no existe** para el navegador de un cliente.
@@ -145,12 +145,12 @@ la marca lo pida.
 
 ### Resto de servicios
 
-| Necesidad | Elección | Por qué |
-|---|---|---|
-| Imágenes | Cloudflare R2 | S3-compatible, **sin costo de egreso** — lo que mata a S3 en un catálogo con fotos |
-| Email | Resend | 3.000/mes gratis; API moderna y plantillas en React |
-| Errores | Sentry | Trazas con source maps; capa gratuita suficiente |
-| Base de datos | Neon | Postgres serverless, branching por rama de git, capa gratuita generosa |
+| Necesidad     | Elección      | Por qué                                                                            |
+| ------------- | ------------- | ---------------------------------------------------------------------------------- |
+| Imágenes      | Cloudflare R2 | S3-compatible, **sin costo de egreso** — lo que mata a S3 en un catálogo con fotos |
+| Email         | Resend        | 3.000/mes gratis; API moderna y plantillas en React                                |
+| Errores       | Sentry        | Trazas con source maps; capa gratuita suficiente                                   |
+| Base de datos | Neon          | Postgres serverless, branching por rama de git, capa gratuita generosa             |
 
 Todos están detrás de una interfaz propia (`StorageService`, `MailerService`,
 `PaymentProvider`) — si mañana cambias de proveedor, tocas un archivo.

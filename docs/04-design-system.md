@@ -28,16 +28,16 @@ Tres reglas que se aplican sin excepción:
 
 ## Neutrales cálidos — la base
 
-| Token | Hex | Uso | Contraste |
-|---|---|---|---|
-| `--bg` | `#FDFBF7` | Fondo de página (blanco hueso) | — |
-| `--surface` | `#F8F4ED` | Tarjetas, secciones alternas (crema) | — |
-| `--surface-raised` | `#FFFFFF` | Modales, elementos elevados | — |
-| `--border-subtle` | `#E2DACD` | Separadores decorativos | 1.34:1 · solo decorativo |
-| `--border-strong` | `#9C8E76` | Bordes de inputs y controles | **3.10:1** ✓ UI |
-| `--text-primary` | `#2B2521` | Texto principal | **14.62:1** ✓ AAA |
-| `--text-secondary` | `#4A423A` | Texto de apoyo | **9.53:1** ✓ AAA |
-| `--text-muted` | `#756B60` | Metadatos, placeholders | **5.04:1** ✓ AA |
+| Token              | Hex       | Uso                                  | Contraste                |
+| ------------------ | --------- | ------------------------------------ | ------------------------ |
+| `--bg`             | `#FDFBF7` | Fondo de página (blanco hueso)       | —                        |
+| `--surface`        | `#F8F4ED` | Tarjetas, secciones alternas (crema) | —                        |
+| `--surface-raised` | `#FFFFFF` | Modales, elementos elevados          | —                        |
+| `--border-subtle`  | `#E2DACD` | Separadores decorativos              | 1.34:1 · solo decorativo |
+| `--border-strong`  | `#9C8E76` | Bordes de inputs y controles         | **3.10:1** ✓ UI          |
+| `--text-primary`   | `#2B2521` | Texto principal                      | **14.62:1** ✓ AAA        |
+| `--text-secondary` | `#4A423A` | Texto de apoyo                       | **9.53:1** ✓ AAA         |
+| `--text-muted`     | `#756B60` | Metadatos, placeholders              | **5.04:1** ✓ AA          |
 
 > `--border-subtle` no llega a 3:1 a propósito: es una línea decorativa. Todo borde que
 > delimite un **control interactivo** (input, select, checkbox) usa `--border-strong`, que
@@ -48,18 +48,18 @@ Tres reglas que se aplican sin excepción:
 Un tono de barro cocido. Encaja con impresión 3D sin ser literal, y envejece mejor que
 cualquier acento de moda.
 
-| Token | Hex | Uso |
-|---|---|---|
-| `--brand-50` | `#FAF4F0` | Fondo de estado hover muy sutil |
-| `--brand-100` | `#F2E5DC` | Fondo de badge, chip seleccionado |
-| `--brand-200` | `#E4CCBC` | Bordes de acento |
-| `--brand-300` | `#D3B09B` | Elementos decorativos |
-| `--brand-400` | `#BF917A` | Iconografía sobre fondo oscuro |
+| Token         | Hex       | Uso                                        |
+| ------------- | --------- | ------------------------------------------ |
+| `--brand-50`  | `#FAF4F0` | Fondo de estado hover muy sutil            |
+| `--brand-100` | `#F2E5DC` | Fondo de badge, chip seleccionado          |
+| `--brand-200` | `#E4CCBC` | Bordes de acento                           |
+| `--brand-300` | `#D3B09B` | Elementos decorativos                      |
+| `--brand-400` | `#BF917A` | Iconografía sobre fondo oscuro             |
 | `--brand-500` | `#A87560` | Solo UI y texto grande — 3.90:1 con blanco |
-| `--brand-600` | `#8C5E4B` | **Botón primario** — 5.50:1 con blanco ✓ |
-| `--brand-700` | `#714B3C` | Hover, anillo de foco, enlaces — 7.57:1 ✓ |
-| `--brand-800` | `#573A2E` | Estado activo/pulsado |
-| `--brand-900` | `#3E2A21` | Base de las sombras |
+| `--brand-600` | `#8C5E4B` | **Botón primario** — 5.50:1 con blanco ✓   |
+| `--brand-700` | `#714B3C` | Hover, anillo de foco, enlaces — 7.57:1 ✓  |
+| `--brand-800` | `#573A2E` | Estado activo/pulsado                      |
+| `--brand-900` | `#3E2A21` | Base de las sombras                        |
 
 > Nota de implementación: `brand-500` es el color que "se ve" como la marca, pero **no
 > alcanza para texto blanco encima**. El botón primario usa `brand-600`. Es exactamente el
@@ -67,9 +67,9 @@ cualquier acento de moda.
 
 ## Acento secundario — salvia
 
-| Token | Hex | Uso |
-|---|---|---|
-| `--sage-300` | `#7E9686` | Detalles decorativos — 3.08:1 |
+| Token        | Hex       | Uso                                 |
+| ------------ | --------- | ----------------------------------- |
+| `--sage-300` | `#7E9686` | Detalles decorativos — 3.08:1       |
 | `--sage-700` | `#55705F` | Texto o fondo con blanco — 5.43:1 ✓ |
 
 ## Pasteles de apoyo
@@ -80,11 +80,11 @@ Solo como **fondo** de elementos pequeños, siempre con `--text-primary` encima.
 
 ## Semánticos
 
-| Token | Hex | Texto encima | Contraste |
-|---|---|---|---|
-| `--success` | `#4E7A61` | blanco | **4.91:1** ✓ |
+| Token       | Hex       | Texto encima     | Contraste    |
+| ----------- | --------- | ---------------- | ------------ |
+| `--success` | `#4E7A61` | blanco           | **4.91:1** ✓ |
 | `--warning` | `#E8C87E` | `--text-primary` | **9.35:1** ✓ |
-| `--danger` | `#A85B52` | blanco | **4.90:1** ✓ |
+| `--danger`  | `#A85B52` | blanco           | **4.90:1** ✓ |
 
 Los tres están desaturados a propósito: un rojo de alarma clásico rompería la sobriedad del
 conjunto. Siguen siendo inequívocos, y nunca son el único indicador — siempre acompañados
@@ -103,24 +103,24 @@ para tablas del dashboard.
 Ambas se cargan con `next/font` — **auto-hospedadas**, sin request a Google. Además de ser
 más rápido, evita tener que abrir la CSP a un dominio externo.
 
-| Escala | Tamaño / interlineado | Uso |
-|---|---|---|
-| `xs` | 12 / 16 | Etiquetas, ayudas |
-| `sm` | 14 / 20 | Texto secundario, tablas |
-| `base` | 16 / 26 | Cuerpo |
-| `lg` | 18 / 28 | Entradilla |
-| `xl` | 20 / 30 | Título de tarjeta |
-| `2xl` | 25 / 34 | Título de sección |
-| `3xl` | 31 / 40 | Título de página |
-| `4xl` | 39 / 48 | Hero secundario |
-| `5xl` | 49 / 56 | Hero (Fraunces) |
+| Escala | Tamaño / interlineado | Uso                      |
+| ------ | --------------------- | ------------------------ |
+| `xs`   | 12 / 16               | Etiquetas, ayudas        |
+| `sm`   | 14 / 20               | Texto secundario, tablas |
+| `base` | 16 / 26               | Cuerpo                   |
+| `lg`   | 18 / 28               | Entradilla               |
+| `xl`   | 20 / 30               | Título de tarjeta        |
+| `2xl`  | 25 / 34               | Título de sección        |
+| `3xl`  | 31 / 40               | Título de página         |
+| `4xl`  | 39 / 48               | Hero secundario          |
+| `5xl`  | 49 / 56               | Hero (Fraunces)          |
 
 Longitud de línea máxima **68 caracteres** en texto corrido.
 
 ## Espaciado, radios y sombras
 
 **Espaciado** — base 4 px: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96`.
-Generoso por defecto: en esta paleta, el aire *es* el diseño.
+Generoso por defecto: en esta paleta, el aire _es_ el diseño.
 
 **Radios** — `sm 4` · `md 8` · `lg 12` · `xl 16` · `full 9999`.
 Suave sin ser infantil. Botones e inputs en `md`, tarjetas en `lg`.
@@ -129,7 +129,7 @@ Suave sin ser infantil. Botones e inputs en `md`, tarjetas en `lg`.
 crema se ve sucia.
 
 ```css
---shadow-sm: 0 1px 2px  rgba(62, 42, 33, 0.05);
+--shadow-sm: 0 1px 2px rgba(62, 42, 33, 0.05);
 --shadow-md: 0 4px 12px rgba(62, 42, 33, 0.06);
 --shadow-lg: 0 12px 32px rgba(62, 42, 33, 0.08);
 ```

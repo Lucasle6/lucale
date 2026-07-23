@@ -1,0 +1,45 @@
+name: bodegon-de-jose
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: bodegon-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-bodegon}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-bodegon_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-bodegon}
+    ports:
+      # Solo en 127.0.0.1: la base de datos no se expone a la red local.
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # Sin healthcheck, `docker compose up -d` devuelve el control en cuanto el
+      # contenedor existe — no cuando Postgres acepta conexiones. Las migraciones
+      # que se lanzan justo después fallarían de forma intermitente.
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-bodegon} -d ${POSTGRES_DB:-bodegon}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  adminer:
+    image: adminer:5
+    container_name: bodegon-adminer
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${ADMINER_PORT:-8080}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    name: bodegon_postgres_data

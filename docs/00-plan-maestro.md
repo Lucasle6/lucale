@@ -3,7 +3,7 @@
 E-commerce fullstack construido de cero. 3 semanas, 15 días hábiles, ~100 horas.
 
 **Escala objetivo:** ~1.000 usuarios/mes. Es carga baja a propósito: nos deja gastar el
-esfuerzo en *hacer las cosas bien* en vez de en escalar. Todas las decisiones asumen que
+esfuerzo en _hacer las cosas bien_ en vez de en escalar. Todas las decisiones asumen que
 el cuello de botella es tu aprendizaje, no el servidor.
 
 **Producto inicial:** impresiones 3D. Modelado de forma genérica —`nombre`, `precio`,
@@ -38,6 +38,7 @@ Es la semana menos vistosa y la más importante. Todo lo demás se apoya aquí.
 ### Día 1 · Módulo 0 — Fundaciones (6 h)
 
 **Construimos**
+
 - Monorepo con pnpm workspaces: `apps/web`, `apps/admin`, `apps/api`, `packages/db`,
   `packages/shared`, `packages/ui`
 - TypeScript en modo `strict` con configuración compartida
@@ -48,7 +49,7 @@ Es la semana menos vistosa y la más importante. Todo lo demás se apoya aquí.
 **Aprendes**
 Por qué un monorepo con tipos compartidos elimina una clase entera de bugs: el frontend y
 el backend no pueden desincronizarse si ambos importan el mismo contrato. Y por qué
-validar el entorno al arrancar (*fail fast*) es mejor que descubrir a las 3 a.m. que
+validar el entorno al arrancar (_fail fast_) es mejor que descubrir a las 3 a.m. que
 `STRIPE_SECRET_KEY` estaba vacía.
 
 **Demo:** `pnpm dev` levanta todo; borrar una variable del `.env` rompe el arranque con un
@@ -57,12 +58,14 @@ mensaje claro.
 ### Día 2 · Módulo 1 — Modelo de datos (6 h)
 
 **Construimos**
+
 - Esquema Prisma completo (ver [`02-modelo-de-datos.md`](./02-modelo-de-datos.md))
 - Migraciones versionadas e índices deliberados (slug, email, sku, orderNumber)
 - Seed con ~12 productos de impresión 3D de ejemplo
 
 **Aprendes**
 Tres decisiones que separan un esquema de juguete de uno real:
+
 1. **Dinero en centavos enteros**, nunca `float`. `0.1 + 0.2 !== 0.3` y en dinero eso es
    un descuadre contable.
 2. **Snapshots en las órdenes.** Si guardas solo `productId`, cambiar el precio mañana
@@ -75,6 +78,7 @@ Tres decisiones que separan un esquema de juguete de uno real:
 ### Día 3 · Módulo 2 — Esqueleto de la API (6 h)
 
 **Construimos**
+
 - Fastify 5 + TypeScript por capas: `routes → controllers → services → repositories`
 - Validación con Zod en toda entrada, vía type provider
 - Manejo de errores centralizado (el cliente nunca ve un stack trace)
@@ -92,6 +96,7 @@ Postgres, y cambiar de ORM sin reescribir la app.
 ### Día 4 · Módulo 3 — Autenticación de clientes (7 h)
 
 **Construimos**
+
 - Registro y login con hashing **argon2id** (parámetros OWASP)
 - Verificación de email por token de un solo uso
 - JWT de acceso corto (15 min) + **refresh token rotativo con detección de reuso**
@@ -110,6 +115,7 @@ incorrecta" le regala a un atacante la lista de tus clientes.
 ### Día 5 · Módulo 4 — Autenticación de admin aislada + RBAC (7 h)
 
 **Construimos**
+
 - Endpoints `/admin/auth/*` totalmente separados, con **audiencia de token distinta**
 - **2FA TOTP obligatorio** para admins: secreto, QR, códigos de respaldo
 - Guard de roles (`CUSTOMER` / `ADMIN` / `SUPER_ADMIN`)
@@ -135,6 +141,7 @@ Aquí el proyecto deja de ser abstracto.
 ### Día 6 · Módulo 5 — Design system (6 h)
 
 **Construimos**
+
 - Next.js 15 (App Router) en `apps/web`, Tailwind v4
 - Tokens de la paleta crema/pastel (ver [`04-design-system.md`](./04-design-system.md))
 - `packages/ui`: Button, Input, Select, Card, Badge, Dialog, Toast, Skeleton — accesibles,
@@ -151,6 +158,7 @@ preciosa y peligrosamente fácil de volver ilegible.
 ### Día 7 · Módulo 6 — CRUD de productos + subida de imágenes (7 h)
 
 **Construimos**
+
 - Endpoints de admin: productos, variantes, categorías
 - Paginación por cursor, búsqueda y filtros
 - Subida de imágenes con presigned URLs, validación de **magic bytes**, límite de tamaño
@@ -166,6 +174,7 @@ renombrado a `.png` falla.
 ### Día 8 · Módulo 7 — Dashboard de administrador (7 h)
 
 **Construimos**
+
 - `apps/admin`: **aplicación Next.js independiente**, en subdominio propio, `noindex`,
   sin un solo enlace desde la tienda
 - Login admin con 2FA + layout del dashboard
@@ -182,6 +191,7 @@ el bundle. Es exactamente lo que pediste, y es un buen argumento de defensa.
 ### Día 9 · Módulo 8 — Tienda pública (7 h)
 
 **Construimos**
+
 - Home, listado con filtros (categoría, tamaño, precio), ficha de producto con galería y
   selector de tamaño
 - SSR/ISR para SEO: metadatos, sitemap, JSON-LD de producto
@@ -196,6 +206,7 @@ más gente se traba con Next.js moderno y el que más se pregunta en entrevistas
 ### Día 10 · Módulo 9 — Carrito y cuenta de usuario (7 h)
 
 **Construimos**
+
 - Carrito persistente: invitado en cookie firmada, usuario en base de datos, con fusión al
   iniciar sesión
 - Validación de stock y **recálculo de totales siempre en el servidor**
@@ -218,6 +229,7 @@ con tests y monitoreo.
 ### Día 11 · Módulo 10 — Checkout con Stripe (7 h)
 
 **Construimos**
+
 - Stripe Checkout Session creada en el servidor, con importes recalculados desde la DB
 - Envío, impuestos y moneda MXN
 - Páginas de éxito y cancelación
@@ -232,6 +244,7 @@ proyecto de cumplimiento normativo, no una feature.
 ### Día 12 · Módulo 11 — Webhooks y ciclo de vida de la orden (7 h)
 
 **Construimos**
+
 - Verificación de firma del webhook + **idempotencia** con tabla `WebhookEvent`
 - Máquina de estados: `PENDING → PAID → FULFILLED → …`
 - Decremento de stock dentro de una transacción
@@ -248,6 +261,7 @@ duplicaría la orden si no eres idempotente.
 ### Día 13 · Módulo 12 — Endurecimiento de seguridad (6 h)
 
 **Construimos**
+
 - CSP estricta con nonces, CSRF double-submit, set completo de cabeceras
 - Auditoría propia con el checklist OWASP Top 10 de
   [`03-seguridad.md`](./03-seguridad.md)
@@ -263,6 +277,7 @@ todos cambiando un número. Es la vulnerabilidad más común y más fácil de in
 ### Día 14 · Módulo 13 — Calidad y observabilidad (7 h)
 
 **Construimos**
+
 - Tests unitarios (Vitest), de integración de API, y E2E del flujo de compra (Playwright)
 - CI en GitHub Actions: lint + typecheck + tests + build en cada push
 - Sentry para errores, logs estructurados, métricas básicas
@@ -276,13 +291,14 @@ fallo cuesta dinero — cálculo de totales, autorización, webhooks.
 ### Día 15 · Módulo 14 — Despliegue y entrega (7 h)
 
 **Construimos**
+
 - Neon (Postgres), Vercel (web + admin), Railway (API), Cloudflare R2 (imágenes)
 - Dominios separados para tienda y admin, TLS, secretos de producción
 - Backups automáticos y runbook de operación
 - **README de defensa**: diagramas de arquitectura, decisiones y sus trade-offs
 
 **Aprendes**
-Que "funciona en mi máquina" no es un entregable. Y a explicar *por qué* elegiste cada
+Que "funciona en mi máquina" no es un entregable. Y a explicar _por qué_ elegiste cada
 cosa — que es lo que realmente se evalúa en una defensa.
 
 **Demo:** un enlace público donde alguien más puede comprar.
@@ -291,12 +307,12 @@ cosa — que es lo que realmente se evalúa en una defensa.
 
 ## Resumen de esfuerzo
 
-| Semana | Foco | Horas | Módulos |
-|---|---|---:|---|
-| 1 | Cimientos, datos, autenticación | 32 | 0 – 4 |
-| 2 | Catálogo, dashboard, tienda | 34 | 5 – 9 |
-| 3 | Pagos, calidad, despliegue | 34 | 10 – 14 |
-| | **Total** | **100** | **15 módulos** |
+| Semana | Foco                            |   Horas | Módulos        |
+| ------ | ------------------------------- | ------: | -------------- |
+| 1      | Cimientos, datos, autenticación |      32 | 0 – 4          |
+| 2      | Catálogo, dashboard, tienda     |      34 | 5 – 9          |
+| 3      | Pagos, calidad, despliegue      |      34 | 10 – 14        |
+|        | **Total**                       | **100** | **15 módulos** |
 
 ---
 
@@ -317,9 +333,9 @@ después de la entrega:
 
 ## Riesgos identificados
 
-| Riesgo | Impacto | Mitigación |
-|---|---|---|
-| El Día 4–5 (auth) se alarga | Arrastra toda la semana 2 | Es el módulo más denso; hay holgura en el Día 6 |
-| Cuenta de Stripe sin verificar | Bloquea el Día 11 | **Crear la cuenta en modo test el Día 1**, no el Día 11 |
-| Dominio no comprado a tiempo | Bloquea el Día 15 | Comprar en la Semana 1; la propagación DNS tarda |
-| Alcance que crece solo | Nada queda terminado | La lista de "fuera de alcance" es un contrato contigo mismo |
+| Riesgo                         | Impacto                   | Mitigación                                                  |
+| ------------------------------ | ------------------------- | ----------------------------------------------------------- |
+| El Día 4–5 (auth) se alarga    | Arrastra toda la semana 2 | Es el módulo más denso; hay holgura en el Día 6             |
+| Cuenta de Stripe sin verificar | Bloquea el Día 11         | **Crear la cuenta en modo test el Día 1**, no el Día 11     |
+| Dominio no comprado a tiempo   | Bloquea el Día 15         | Comprar en la Semana 1; la propagación DNS tarda            |
+| Alcance que crece solo         | Nada queda terminado      | La lista de "fuera de alcance" es un contrato contigo mismo |
