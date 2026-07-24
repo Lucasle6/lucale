@@ -17,6 +17,9 @@ out/
 # Prisma
 packages/db/prisma/*.db
 packages/db/prisma/*.db-journal
+# Cliente generado por Prisma: se reconstruye con `pnpm --filter @bodegon/db generate`.
+# Las migraciones SÍ se versionan; este código no.
+generated/
 
 # Tests y cobertura
 coverage/

@@ -1,0 +1,433 @@
+// Esquema de datos de Bodegón de José.
+//
+// Única fuente de verdad del modelo: de este archivo Prisma genera el cliente
+// tipado (para consultar desde el código) y las migraciones (que crean las
+// tablas en Postgres). El diseño completo y el porqué de cada decisión están
+// en docs/02-modelo-de-datos.md.
+
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  // Se lee de la variable de entorno validada con Zod en apps/api. El secreto
+  // vive solo en el .env; nunca se escribe aquí.
+  url = env("DATABASE_URL")
+  // citext = "case-insensitive text": emails insensibles a mayúsculas a nivel
+  // de base de datos (ver el campo email de User).
+  extensions = [citext]
+}
+
+// ─── Identidad y sesión ──────────────────────────────────────────────────────
+
+/// Roles del sistema. La autorización real se verifica en el servidor (Día 5);
+/// este enum es la fuente de esos valores.
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
+}
+
+/// Una persona con cuenta: cliente o administrador. La distinción la da `role`.
+model User {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  email        String   @unique @db.Citext
+  passwordHash String
+  role         UserRole @default(CUSTOMER)
+
+  // Fecha-o-nulo en vez de booleano: guarda además "¿cuándo?". null = "aún no".
+  emailVerifiedAt    DateTime?
+  twoFactorSecret    String? // cifrado por la app antes de guardarse (Día 5)
+  twoFactorEnabledAt DateTime?
+
+  // Defensa contra fuerza bruta (Día 4): bloqueo tras N intentos fallidos.
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // soft delete: un usuario con pedidos nunca se borra de verdad
+
+  // Relaciones (el lado inverso: "un usuario tiene muchos..."). No son columnas
+  // reales; permiten navegar en el código, p. ej. user.refreshTokens.
+  refreshTokens      RefreshToken[]
+  verificationTokens VerificationToken[]
+  backupCodes        BackupCode[]
+  addresses          Address[]
+  createdProducts    Product[] // productos que este admin dio de alta (auditoría)
+  cart               Cart? // un usuario, un solo carrito
+  orders             Order[]
+
+  @@map("users")
+}
+
+/// Tokens de refresco de sesión. Se guardan hasheados y rotan en cada uso; los
+/// tokens de una misma cadena comparten `familyId` para la detección de reuso
+/// (control de seguridad nº 3, implementado en el Día 4).
+model RefreshToken {
+  id     String @id @default(uuid(7)) @db.Uuid
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String @unique // guardamos la huella del token, nunca el token
+  familyId  String @db.Uuid // agrupa la cadena de rotaciones para revocarla junta
+
+  expiresAt    DateTime // caducidad obligatoria
+  revokedAt    DateTime? // null = activo; con fecha = revocado
+  replacedById String?   @db.Uuid // qué token lo sustituyó al rotar
+
+  ip        String? // desde dónde se creó la sesión (auditoría)
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId]) // "todos los tokens de este usuario"
+  @@index([familyId]) // "toda esta familia" (revocación en cascada)
+  @@map("refresh_tokens")
+}
+
+/// Distingue para qué sirve un token de verificación: verificar el email tras
+/// el registro, o restablecer la contraseña.
+enum VerificationTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+/// Tokens de un solo uso que viajan en correos (verificar email, resetear
+/// contraseña). Se guardan hasheados; `usedAt` los invalida tras el primer uso.
+model VerificationToken {
+  id     String @id @default(uuid(7)) @db.Uuid
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash String                @unique
+  type      VerificationTokenType
+  expiresAt DateTime
+  usedAt    DateTime? // un solo uso: con fecha = ya consumido
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("verification_tokens")
+}
+
+/// Códigos de respaldo del 2FA (Día 5). Se entregan ~10 al activar 2FA, se
+/// guardan hasheados y cada uno sirve una sola vez.
+model BackupCode {
+  id     String @id @default(uuid(7)) @db.Uuid
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  codeHash  String
+  usedAt    DateTime? // un solo uso
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("backup_codes")
+}
+
+/// Direcciones de envío del usuario. Los campos obligatorios son los mínimos
+/// para poder enviar; line2 y phone son opcionales.
+model Address {
+  id     String @id @default(uuid(7)) @db.Uuid
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  recipientName String
+  line1         String
+  line2         String?
+  city          String
+  state         String
+  postalCode    String
+  country       String  @default("MX") // vendemos en México
+  phone         String?
+  isDefault     Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ─── Catálogo ────────────────────────────────────────────────────────────────
+
+/// Categorías del catálogo, en árbol: una categoría puede tener padre e hijas
+/// (Decoración → Macetas → Macetas de escritorio). De ahí la auto-relación.
+model Category {
+  id       String @id @default(uuid(7)) @db.Uuid
+  name     String
+  slug     String @unique // versión del nombre apta para URL
+  position Int    @default(0) // orden manual en el menú
+
+  // Auto-relación: la relación necesita nombre ("CategoryTree") porque ambos
+  // lados viven en la misma tabla y Prisma debe saber cuál empareja con cuál.
+  parentId String?    @db.Uuid
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryTree")
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+/// Ciclo de vida de un producto: nace en borrador, se publica, y al dejar de
+/// venderse se archiva (nunca se borra: tiene ventas asociadas).
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+/// Un producto del catálogo. El precio NO vive aquí sino en cada variante.
+model Product {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  name        String
+  slug        String        @unique
+  description String?
+  status      ProductStatus @default(DRAFT) // invisible en la tienda hasta publicarlo
+
+  categoryId String?   @db.Uuid
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Qué administrador lo dio de alta.
+  createdById String? @db.Uuid
+  createdBy   User?   @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  variants ProductVariant[]
+  images   ProductImage[]
+
+  @@index([status, categoryId]) // la consulta más frecuente de la tienda
+  @@map("products")
+}
+
+/// Una medida concreta de un producto, con su propio precio y su propio stock.
+///
+/// Aquí viven los tres atributos del catálogo: el NOMBRE lo hereda del producto,
+/// el TAMAÑO es `size` y el VALOR es `priceCents`. El precio está en la variante
+/// y no en el producto porque cada tamaño cuesta distinto.
+///
+/// `size` es texto libre a propósito: hoy guarda "Pequeño/Mediano/Grande", pero
+/// serviría igual para tallas de ropa o gramajes de café. Cambiar de rubro no
+/// exige migrar el esquema.
+model ProductVariant {
+  id        String  @id @default(uuid(7)) @db.Uuid
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  size       String // el TAMAÑO
+  sku        String @unique // código de inventario, p. ej. MAC-HEX-L
+  priceCents Int // el VALOR, en centavos enteros (ver packages/shared/money.ts)
+  currency   String @default("MXN")
+  stock      Int    @default(0) // se decrementa en transacción al pagar (Día 12)
+
+  weightGrams Int? // para calcular envío
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  cartItems CartItem[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+/// Fotos de un producto. `alt` es el texto para lectores de pantalla; width y
+/// height permiten al navegador reservar el espacio antes de que la imagen
+/// cargue, evitando que la página salte.
+model ProductImage {
+  id        String  @id @default(uuid(7)) @db.Uuid
+  productId String  @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  url      String
+  alt      String? // accesibilidad y SEO
+  position Int     @default(0) // 0 = imagen principal
+  width    Int?
+  height   Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+// ─── Comercio ────────────────────────────────────────────────────────────────
+
+/// Carrito de compra. Pertenece a un usuario con sesión (userId) o a un
+/// invitado identificado por una cookie firmada (sessionToken). Al iniciar
+/// sesión, ambos carritos se fusionan (Día 10).
+model Cart {
+  id String @id @default(uuid(7)) @db.Uuid
+
+  // @unique: un usuario no puede acumular carritos fantasma.
+  userId String? @unique @db.Uuid
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sessionToken String?  @unique // carritos de invitado
+  expiresAt    DateTime // permite limpiar carritos abandonados
+
+  items CartItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("carts")
+}
+
+/// Una línea del carrito.
+///
+/// NO guarda precio a propósito (control de seguridad nº 18). El navegador solo
+/// dice "quiero N unidades de esta variante"; el servidor lee el precio real de
+/// la base de datos al calcular el total. Si el importe viajara desde el
+/// cliente, alguien compraría el catálogo a un centavo.
+model CartItem {
+  id     String @id @default(uuid(7)) @db.Uuid
+  cartId String @db.Uuid
+  cart   Cart   @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  variantId String         @db.Uuid
+  variant   ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  quantity Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Una variante no puede aparecer dos veces en el mismo carrito: si se añade
+  // de nuevo, se incrementa quantity. La base impide el estado incoherente.
+  @@unique([cartId, variantId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+/// Ciclo de vida de un pedido. Las transiciones las controla el servidor; el
+/// webhook de Stripe es la única fuente de verdad del paso a PAID (Día 12).
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+/// Un pedido. A diferencia del carrito, la orden congela los importes: es un
+/// registro contable del pasado, no un reflejo del catálogo actual.
+model Order {
+  id          String @id @default(uuid(7)) @db.Uuid
+  orderNumber String @unique // legible para el cliente, p. ej. BDJ-2026-0042
+
+  // SetNull: si el usuario se borra, la venta sobrevive sin dueño.
+  userId String? @db.Uuid
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email  String // siempre presente: hay que poder confirmar la compra
+
+  status OrderStatus @default(PENDING)
+
+  // Importes congelados, en centavos enteros.
+  subtotalCents Int
+  shippingCents Int    @default(0)
+  taxCents      Int    @default(0)
+  totalCents    Int
+  currency      String @default("MXN")
+
+  stripeSessionId       String? @unique
+  stripePaymentIntentId String? @unique
+
+  // Snapshot JSON, no una relación a Address: si el cliente edita su dirección
+  // después, la orden debe seguir diciendo a dónde se envió realmente.
+  shippingAddress Json
+
+  placedAt    DateTime  @default(now())
+  paidAt      DateTime?
+  fulfilledAt DateTime?
+  cancelledAt DateTime?
+
+  items OrderItem[]
+
+  @@index([userId, placedAt(sort: Desc)]) // pantalla "mis pedidos"
+  @@map("orders")
+}
+
+/// Una línea del pedido, con los datos COPIADOS del momento de la compra.
+///
+/// Los campos *Snapshot son la clave: si mañana renombras el producto o subes
+/// el precio, la factura de hoy debe seguir diciendo lo que decía hoy. Guardar
+/// solo variantId reescribiría la historia contable.
+model OrderItem {
+  id      String @id @default(uuid(7)) @db.Uuid
+  orderId String @db.Uuid
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  // Referencia débil a propósito (sin @relation): si la variante se elimina del
+  // catálogo, esta línea sobrevive porque ya tiene todo copiado abajo.
+  variantId String? @db.Uuid
+
+  productNameSnapshot String
+  sizeSnapshot        String
+  skuSnapshot         String
+
+  unitPriceCents Int
+  quantity       Int
+  lineTotalCents Int
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// ─── Operación ───────────────────────────────────────────────────────────────
+
+/// Rastro de acciones administrativas (control de seguridad nº 17).
+/// Append-only: se escribe, nunca se edita ni se borra, ni siquiera por un admin.
+model AuditLog {
+  id String @id @default(uuid(7)) @db.Uuid
+
+  // Sin @relation a propósito: si el usuario se elimina, su rastro sobrevive.
+  actorId String? @db.Uuid
+
+  action     String // p. ej. "product.updated", "order.refunded"
+  entityType String // p. ej. "Product"
+  entityId   String?
+
+  metadata  Json? // detalle del cambio: campos tocados, antes/después
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([actorId, createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}
+
+/// Eventos recibidos de proveedores externos (Stripe). La restricción @unique
+/// sobre externalId ES la idempotencia: Stripe reenvía eventos ante cualquier
+/// duda de entrega, y sin esto un reenvío duplicaría la orden. Al procesar se
+/// inserta primero aquí; si ya existía, la base rechaza y aborta la transacción.
+model WebhookEvent {
+  id String @id @default(uuid(7)) @db.Uuid
+
+  provider   String // "stripe"
+  externalId String @unique // id del evento en el proveedor
+  type       String // p. ej. "checkout.session.completed"
+
+  payload     Json // evento completo, para reprocesar o investigar
+  processedAt DateTime? // null = pendiente o fallido
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@index([provider, type])
+  @@map("webhook_events")
+}
