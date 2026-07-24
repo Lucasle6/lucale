@@ -21,6 +21,10 @@
     "db:down": "docker compose --env-file .env -f infra/docker-compose.yml down",
     "db:reset": "docker compose --env-file .env -f infra/docker-compose.yml down -v && pnpm db:up",
     "db:logs": "docker compose --env-file .env -f infra/docker-compose.yml logs -f postgres",
+    "db:migrate": "pnpm --filter @bodegon/db migrate",
+    "db:seed": "pnpm --filter @bodegon/db seed",
+    "db:generate": "pnpm --filter @bodegon/db generate",
+    "db:studio": "pnpm --filter @bodegon/db studio",
     "prepare": "husky"
   },
   "lint-staged": {

@@ -5,8 +5,8 @@ E-commerce fullstack construido de cero. Proyecto de graduación.
 **Stack** — Next.js 15 · React 19 · TypeScript · Fastify 5 · PostgreSQL 17 · Prisma ·
 Stripe · Tailwind v4
 
-**Estado** — Día 1 completado: monorepo, toolchain, Postgres y validación de entorno.
-Siguiente: Día 2 — modelo de datos.
+**Estado** — Días 1–2 completados: monorepo y toolchain; esquema de datos con 15 tablas,
+migración aplicada y catálogo de ejemplo sembrado. Siguiente: Día 3 — esqueleto de la API.
 
 ---
 
@@ -35,24 +35,28 @@ infra/         docker-compose y scripts
 ## Puesta en marcha
 
 ```bash
-pnpm install && cp .env.example .env && pnpm db:up && pnpm dev
+pnpm install && cp .env.example .env && pnpm db:up && pnpm db:migrate && pnpm db:seed && pnpm dev
 ```
 
 La API queda en http://localhost:4000 (prueba `/health`) y Adminer en
-http://localhost:8080 para inspeccionar la base de datos.
+http://localhost:8080 para inspeccionar la base de datos (servidor `postgres`,
+usuario y contraseña según tu `.env`).
 
 ### Comandos
 
-| Comando          | Qué hace                                                |
-| ---------------- | ------------------------------------------------------- |
-| `pnpm dev`       | Compila los packages y arranca la API en modo watch     |
-| `pnpm typecheck` | TypeScript en todos los workspaces                      |
-| `pnpm lint`      | ESLint con reglas que usan información de tipos         |
-| `pnpm format`    | Prettier sobre todo el repo                             |
-| `pnpm db:up`     | Levanta PostgreSQL 17 + Adminer                         |
-| `pnpm db:down`   | Los detiene (conserva los datos)                        |
-| `pnpm db:reset`  | Los detiene **borrando el volumen** y vuelve a crearlos |
-| `pnpm db:logs`   | Sigue los logs de PostgreSQL                            |
+| Comando           | Qué hace                                                |
+| ----------------- | ------------------------------------------------------- |
+| `pnpm dev`        | Compila los packages y arranca la API en modo watch     |
+| `pnpm typecheck`  | TypeScript en todos los workspaces                      |
+| `pnpm lint`       | ESLint con reglas que usan información de tipos         |
+| `pnpm format`     | Prettier sobre todo el repo                             |
+| `pnpm db:up`      | Levanta PostgreSQL 17 + Adminer                         |
+| `pnpm db:down`    | Los detiene (conserva los datos)                        |
+| `pnpm db:reset`   | Los detiene **borrando el volumen** y vuelve a crearlos |
+| `pnpm db:logs`    | Sigue los logs de PostgreSQL                            |
+| `pnpm db:migrate` | Crea y aplica migraciones desde el esquema Prisma       |
+| `pnpm db:seed`    | Siembra el catálogo de ejemplo (idempotente)            |
+| `pnpm db:studio`  | Abre Prisma Studio, un visor de la base de datos        |
 
 ### Calidad automática
 
