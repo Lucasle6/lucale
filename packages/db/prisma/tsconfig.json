@@ -1,0 +1,10 @@
+{
+  // Los scripts de esta carpeta (seed) no forman parte del build del paquete:
+  // los ejecuta tsx directamente. Este tsconfig existe para que hereden las
+  // mismas reglas estrictas y para que ESLint pueda analizarlos con tipos.
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["**/*.ts"]
+}

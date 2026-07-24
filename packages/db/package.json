@@ -21,13 +21,17 @@
     "generate": "dotenv -e ../../.env -- prisma generate",
     "migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "validate": "dotenv -e ../../.env -- prisma validate",
-    "studio": "dotenv -e ../../.env -- prisma studio"
+    "studio": "dotenv -e ../../.env -- prisma studio",
+    "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@types/node": "^26.1.1",
     "dotenv-cli": "^11.0.0",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "tsx": "^4.23.1"
   },
   "dependencies": {
+    "@bodegon/shared": "workspace:^",
     "@prisma/client": "^6.19.3"
   }
 }
