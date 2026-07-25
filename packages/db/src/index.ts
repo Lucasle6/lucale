@@ -6,10 +6,10 @@
  * agotaría el límite del servidor. Toda la aplicación usa esta.
  */
 
-import { PrismaClient } from "./generated/prisma/index.js";
+import { PrismaClient } from "../generated/prisma/index.js";
 
 export const prisma = new PrismaClient();
 
-// Reexporta los tipos y enums generados (User, Product, OrderStatus, ...) para
+// Reexporta los tipos y enums generados (Prisma, User, ProductStatus, ...) para
 // que el resto del monorepo importe todo desde "@bodegon/db".
-export * from "./generated/prisma/index.js";
+export * from "../generated/prisma/index.js";

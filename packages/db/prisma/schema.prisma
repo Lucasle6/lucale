@@ -6,8 +6,11 @@
 // en docs/02-modelo-de-datos.md.
 
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../src/generated/prisma"
+  provider = "prisma-client-js"
+  // Fuera de src/ a propósito: Prisma genera .js/.d.ts, que tsc no copia a
+  // dist/ al compilar. Con la salida aquí, la ruta relativa ../generated/prisma
+  // resuelve igual desde src/ que desde dist/.
+  output          = "../generated/prisma"
   previewFeatures = ["postgresqlExtensions"]
 }
 

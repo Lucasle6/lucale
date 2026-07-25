@@ -13,7 +13,7 @@
  */
 
 import { toCents } from "@bodegon/shared";
-import { PrismaClient, ProductStatus } from "../src/generated/prisma/index.js";
+import { PrismaClient, ProductStatus } from "../generated/prisma/index.js";
 
 const prisma = new PrismaClient();
 

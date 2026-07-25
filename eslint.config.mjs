@@ -23,7 +23,12 @@ export default tseslint.config(
     extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        projectService: {
+          // Archivos de configuración sueltos que no pertenecen a ningún
+          // tsconfig (viven junto a él, no dentro de su `include`). Sin esto,
+          // el análisis con tipos los rechaza por no encontrarles proyecto.
+          allowDefaultProject: ["*.config.ts", "*/*.config.ts", "*/*/*.config.ts"],
+        },
         tsconfigRootDir: import.meta.dirname,
       },
       globals: { ...globals.node },

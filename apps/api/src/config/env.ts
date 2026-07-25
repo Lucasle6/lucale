@@ -45,6 +45,10 @@ const EnvSchema = z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .default("info"),
 
+    // Silencia los logs en los tests: su salida debe ser el resultado de las
+    // pruebas, no el tráfico HTTP simulado.
+    VITEST: z.string().optional(),
+
     DATABASE_URL: z
       .string()
       .min(1)
