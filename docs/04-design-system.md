@@ -117,6 +117,25 @@ más rápido, evita tener que abrir la CSP a un dominio externo.
 
 Longitud de línea máxima **68 caracteres** en texto corrido.
 
+## Textos de interfaz
+
+El punto de entrada a la cuenta se etiqueta **«Anmelden/Registrieren»** (ES: «Iniciar
+sesión / Registrarse»), nunca solo «Registrieren».
+
+Al arrancar la app todavía no sabemos qué viene a hacer quien llega: puede tener cuenta o
+puede ir a crearla. Un botón que dice solo «Registrieren» le habla a la mitad de los
+usuarios y deja a la otra mitad buscando dónde entrar. La barra anuncia las dos acciones y
+la pantalla siguiente las separa.
+
+Aplica al header de `apps/web`, a la pantalla de bienvenida y a cualquier CTA que lleve a
+`/auth`. **Dentro** del formulario cada botón sí dice lo suyo: «Anmelden» envía el login y
+«Registrieren» crea la cuenta — ahí ya no hay ambigüedad que resolver.
+
+> Decisión de la revisión de Marco del 1 de agosto de 2026. De paso: el texto actual del
+> prototipo dice «Registrierem», con _m_.
+
+---
+
 ## Espaciado, radios y sombras
 
 **Espaciado** — base 4 px: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96`.

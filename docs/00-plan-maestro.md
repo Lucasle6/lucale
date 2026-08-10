@@ -147,6 +147,8 @@ Aquí el proyecto deja de ser abstracto.
 - `packages/ui`: Button, Input, Select, Card, Badge, Dialog, Toast, Skeleton — accesibles,
   con foco visible, escritos por nosotros
 - Página `/design-system` para revisar todo junto
+- Header con el CTA de cuenta como **«Anmelden/Registrieren»** (ver
+  [`04-design-system.md`](./04-design-system.md#textos-de-interfaz))
 
 **Aprendes**
 Tokens vs. valores hardcodeados: cambiar la marca entera debe ser editar un archivo, no

@@ -61,26 +61,64 @@ const EnvSchema = z
     JWT_ACCESS_SECRET: z.string().min(32, "mínimo 32 caracteres"),
     JWT_REFRESH_SECRET: z.string().min(32, "mínimo 32 caracteres"),
 
+    // Pepper: secreto que se mezcla con la contraseña ANTES de hashearla y que
+    // vive solo en el servidor, nunca en la base de datos. Si roban solo la
+    // base, los hashes son inatacables sin esto.
+    PASSWORD_PEPPER: z.string().min(32, "mínimo 32 caracteres"),
+
+    // Firma las cookies, para detectar si alguien las manipula.
+    COOKIE_SECRET: z.string().min(32, "mínimo 32 caracteres"),
+
+    // Clave AES-256 para cifrar los secretos TOTP en reposo. Exactamente 64
+    // caracteres hexadecimales = 32 bytes. Genera una con:
+    //   openssl rand -hex 32
+    TOTP_ENCRYPTION_KEY: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/i, "deben ser 64 caracteres hexadecimales (32 bytes)"),
+
+    // Vida de los tokens. El de acceso es corto a propósito: limita la ventana
+    // de daño si uno se filtra.
+    ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().int().min(1).max(60).default(15),
+    REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(30),
+
+    // Nombre que aparece en la app de autenticación del usuario (Google
+    // Authenticator, 1Password...) junto al código de 6 dígitos.
+    TOTP_ISSUER: z.string().min(1).default("Bodegón de José"),
+
     // Orígenes permitidos por CORS. Se configuran en el Día 3, pero se validan desde
     // hoy: una allowlist explícita es más segura que un `origin: true` que acepta todo.
     WEB_ORIGIN: z.url(),
     ADMIN_ORIGIN: z.url(),
   })
   .superRefine((env, ctx) => {
-    // Dos secretos distintos, siempre. Si fueran el mismo, un access token robado
-    // valdría también como refresh token y la rotación dejaría de servir de nada.
-    if (env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["JWT_REFRESH_SECRET"],
-        message: "debe ser distinto de JWT_ACCESS_SECRET",
-      });
+    // Cada secreto protege una cosa distinta y todos deben ser distintos entre
+    // sí. Si el de acceso y el de refresco coincidieran, un access token robado
+    // valdría como refresh token y la rotación dejaría de servir de nada.
+    const secretKeys = [
+      "JWT_ACCESS_SECRET",
+      "JWT_REFRESH_SECRET",
+      "PASSWORD_PEPPER",
+      "COOKIE_SECRET",
+    ] as const;
+
+    const seen = new Map<string, string>();
+    for (const key of secretKeys) {
+      const previous = seen.get(env[key]);
+      if (previous !== undefined) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: `debe ser distinto de ${previous}: cada secreto protege una cosa diferente`,
+        });
+      } else {
+        seen.set(env[key], key);
+      }
     }
 
     // Red de seguridad: los secretos de ejemplo del .env.example están en el
     // repositorio, así que son públicos. Que nunca lleguen a producción.
     if (env.NODE_ENV === "production") {
-      for (const key of ["JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET"] as const) {
+      for (const key of secretKeys) {
         if (env[key].startsWith(DEV_SECRET_PREFIX)) {
           ctx.addIssue({
             code: "custom",
@@ -89,6 +127,13 @@ const EnvSchema = z
               "es un secreto de ejemplo y está en el repositorio: genera uno real con `openssl rand -base64 48`",
           });
         }
+      }
+      if (env.TOTP_ENCRYPTION_KEY.startsWith("0000")) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["TOTP_ENCRYPTION_KEY"],
+          message: "es la clave de ejemplo: genera una real con `openssl rand -hex 32`",
+        });
       }
     }
   });
