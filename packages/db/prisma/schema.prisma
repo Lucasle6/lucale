@@ -43,8 +43,13 @@ model User {
 
   // Fecha-o-nulo en vez de booleano: guarda además "¿cuándo?". null = "aún no".
   emailVerifiedAt    DateTime?
-  twoFactorSecret    String? // cifrado por la app antes de guardarse (Día 5)
+  twoFactorSecret    String? // cifrado con AES-256-GCM antes de guardarse
   twoFactorEnabledAt DateTime?
+
+  // Último periodo TOTP consumido. Impide reusar un código de 6 dígitos: si
+  // alguien lo ve en tu pantalla o lo intercepta, tiene 30 s para usarlo — con
+  // esto, el código muere en cuanto lo usas tú.
+  twoFactorLastPeriod Int?
 
   // Defensa contra fuerza bruta (Día 4): bloqueo tras N intentos fallidos.
   failedLoginAttempts Int       @default(0)

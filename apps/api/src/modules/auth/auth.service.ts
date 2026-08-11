@@ -20,6 +20,7 @@ import {
   TOKEN_AUDIENCE,
   signAccessToken,
   signTwoFactorChallenge,
+  verifyTwoFactorChallenge,
 } from "../../lib/jwt.js";
 import type { Mailer } from "../../lib/mailer.js";
 import {
@@ -36,6 +37,7 @@ import {
 } from "../../lib/tokens.js";
 import * as authRepository from "./auth.repository.js";
 import type { LoginInput, RegisterInput } from "./auth.schemas.js";
+import * as twoFactorService from "./two-factor.service.js";
 
 /**
  * Mensaje único para TODOS los fallos de login: email inexistente, contraseña
@@ -262,6 +264,37 @@ export async function crearTokensDeSesion(
   });
 
   return { accessToken, refreshToken, refreshTokenId: creado.id };
+}
+
+/**
+ * Segundo paso del login cuando la cuenta tiene 2FA.
+ *
+ * Exige el challengeToken emitido tras acertar la contraseña. Sin él, alguien
+ * podría saltarse el primer factor enviando solo un código de 6 dígitos:
+ * bastaría adivinar un número entre un millón contra una cuenta cuya
+ * contraseña no conoce. Con él, hay que superar los dos factores en orden.
+ */
+export async function completeTwoFactorLogin(
+  challengeToken: string,
+  codes: { totpCode?: string | undefined; backupCode?: string | undefined },
+  context: RequestContext,
+): Promise<{ user: User; tokens: SessionTokens }> {
+  let userId: string;
+  try {
+    userId = await verifyTwoFactorChallenge(challengeToken);
+  } catch {
+    throw new UnauthorizedError("La verificación caducó. Inicia sesión de nuevo.");
+  }
+
+  const user = await authRepository.findUserById(userId);
+  if (user === null || user.twoFactorEnabledAt === null) {
+    throw new UnauthorizedError("La verificación caducó. Inicia sesión de nuevo.");
+  }
+
+  // Lanza si el código no vale; el manejador central lo traduce a HTTP.
+  await twoFactorService.verifySecondFactor(user, codes);
+
+  return { user, tokens: await createSession(user, context) };
 }
 
 // ─── Rotación con detección de reuso ─────────────────────────────────────────
