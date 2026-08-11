@@ -44,6 +44,14 @@ import type { LoginInput, RegisterInput } from "./auth.schemas.js";
  */
 const CREDENCIALES_INVALIDAS = "Correo o contraseña incorrectos";
 
+/**
+ * Mensaje único para todos los fallos de sesión: token inexistente, caducado,
+ * revocado o reusado. Nunca decimos "detectamos un reuso" — eso le confirmaría
+ * al atacante que el token era auténtico y que fuimos nosotros quienes cerramos
+ * la sesión. Al dueño real se le explica por correo.
+ */
+const SESION_INVALIDA = "Tu sesión no es válida. Inicia sesión de nuevo.";
+
 /** Intentos fallidos antes de bloquear. */
 const MAX_FAILED_ATTEMPTS = 5;
 
@@ -56,6 +64,8 @@ export interface RequestContext {
 export interface SessionTokens {
   accessToken: string;
   refreshToken: string;
+  /** Id de la fila creada, para trazar la cadena de rotaciones. */
+  refreshTokenId: string;
 }
 
 // ─── Registro ────────────────────────────────────────────────────────────────
@@ -234,7 +244,7 @@ export async function crearTokensDeSesion(
 ): Promise<SessionTokens> {
   const refreshToken = generateToken();
 
-  await authRepository.createRefreshToken({
+  const creado = await authRepository.createRefreshToken({
     userId: user.id,
     // Se guarda la huella, nunca el token: si roban la base, no se llevan
     // sesiones activas.
@@ -251,7 +261,88 @@ export async function crearTokensDeSesion(
     aud: TOKEN_AUDIENCE.customer,
   });
 
-  return { accessToken, refreshToken };
+  return { accessToken, refreshToken, refreshTokenId: creado.id };
+}
+
+// ─── Rotación con detección de reuso ─────────────────────────────────────────
+
+/**
+ * Renueva la sesión rotando el refresh token, y detecta si alguien lo robó.
+ *
+ * EL PROBLEMA: un refresh token dura 30 días. Si te lo roban, el ladrón tiene
+ * tu sesión un mes — y el servidor no puede distinguirlo de ti, porque el
+ * token que presenta es correcto.
+ *
+ * LA IDEA: cada uso rota el token. El viejo muere y nace uno nuevo, ambos de
+ * la misma familia. Eso solo no detecta nada... hasta que aparece un ladrón:
+ *
+ *     tú     usas A  →  recibes B     (A queda muerto)
+ *     ladrón usa  A  →  ¡A ya está muerto!
+ *
+ * Un token ya rotado solo puede llegar de dos sitios: de alguien que lo copió,
+ * o de ti si el ladrón se te adelantó. En ambos casos HAY UN INTRUSO. No
+ * existe escenario legítimo donde reaparezca un token muerto.
+ *
+ * LA RESPUESTA: revocar la familia entera. Como no sabemos cuál de los dos es
+ * el legítimo, expulsamos a ambos — tú tienes la contraseña para volver, el
+ * ladrón no. Y te avisamos por correo, convirtiendo un robo silencioso en una
+ * alarma.
+ *
+ * Control de seguridad nº 3 de docs/03-seguridad.md.
+ */
+export async function refreshSession(
+  refreshToken: string,
+  context: RequestContext,
+  mailer: Mailer,
+): Promise<SessionTokens> {
+  const stored = await authRepository.findRefreshTokenByHash(hashToken(refreshToken));
+
+  // Token que nunca emitimos, o de una sesión ya purgada.
+  if (stored === null) {
+    throw new UnauthorizedError(SESION_INVALIDA);
+  }
+
+  // 🚨 REUSO DETECTADO: este token ya había rotado.
+  if (stored.revokedAt !== null) {
+    await dispararAlarmaDeReuso(stored.familyId, stored.user.email, mailer);
+    throw new UnauthorizedError(SESION_INVALIDA);
+  }
+
+  if (stored.expiresAt <= new Date()) {
+    throw new UnauthorizedError(SESION_INVALIDA);
+  }
+
+  // La cuenta pudo borrarse o bloquearse mientras la sesión seguía viva.
+  if (stored.user.deletedAt !== null) {
+    await authRepository.revokeTokenFamily(stored.familyId);
+    throw new UnauthorizedError(SESION_INVALIDA);
+  }
+
+  // Comparar-y-escribir atómico: mata el token viejo solo si seguía activo.
+  // Si falla, otra petición se nos adelantó entre la lectura y esta línea, y
+  // eso es indistinguible de un reuso: se trata como tal.
+  const loConseguimos = await authRepository.revokeRefreshTokenIfActive(stored.id);
+  if (!loConseguimos) {
+    await dispararAlarmaDeReuso(stored.familyId, stored.user.email, mailer);
+    throw new UnauthorizedError(SESION_INVALIDA);
+  }
+
+  // Token nuevo en la MISMA familia: la cadena continúa.
+  const tokens = await crearTokensDeSesion(stored.user, stored.familyId, context);
+
+  // Deja el rastro de qué token sustituyó a cuál.
+  await authRepository.linkReplacementToken(stored.id, tokens.refreshTokenId);
+
+  return tokens;
+}
+
+async function dispararAlarmaDeReuso(
+  familyId: string,
+  email: string,
+  mailer: Mailer,
+): Promise<void> {
+  await authRepository.revokeTokenFamily(familyId);
+  await mailer.sendSessionRevokedNotice(email);
 }
 
 /** Cierra la sesión actual. */

@@ -152,6 +152,32 @@ export function revokeRefreshToken(
 }
 
 /**
+ * Revoca un token SOLO si todavía estaba activo. Devuelve si lo consiguió.
+ *
+ * Es una operación atómica de comparar-y-escribir, y hace falta por una
+ * condición de carrera real: si el usuario tiene dos pestañas abiertas, ambas
+ * pueden refrescar a la vez. Si leyéramos primero y escribiéramos después, las
+ * dos verían "activo" y las dos rotarían.
+ *
+ * Con el `revokedAt: null` dentro del WHERE, la base garantiza que solo una
+ * gane. La que pierde recibe count = 0 y sabe que alguien se le adelantó.
+ */
+export async function revokeRefreshTokenIfActive(id: string): Promise<boolean> {
+  const result = await prisma.refreshToken.updateMany({
+    where: { id, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+  return result.count === 1;
+}
+
+export function linkReplacementToken(
+  id: string,
+  replacedById: string,
+): Promise<{ count: number }> {
+  return prisma.refreshToken.updateMany({ where: { id }, data: { replacedById } });
+}
+
+/**
  * Revoca TODA una familia de tokens.
  *
  * Es la respuesta a la detección de reuso (bloque D): si aparece un token ya
