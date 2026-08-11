@@ -18,6 +18,7 @@
 
 import type { UserRole } from "@bodegon/db";
 import type { CookieSerializeOptions } from "@fastify/cookie";
+import { SignJWT, jwtVerify } from "jose";
 import { env, isProduction } from "../config/env.js";
 
 /**
@@ -89,7 +90,91 @@ export function clearCookieOptions(): CookieSerializeOptions {
   return baseCookieOptions();
 }
 
-/** Vida del access token en el formato que espera @fastify/jwt ("15m"). */
-export function accessTokenExpiry(): string {
-  return `${String(env.ACCESS_TOKEN_TTL_MINUTES)}m`;
+// ─── Firma y verificación ────────────────────────────────────────────────────
+
+const ALGORITHM = "HS256";
+const ISSUER = "bodegon-api";
+
+function accessKey(): Uint8Array {
+  return new TextEncoder().encode(env.JWT_ACCESS_SECRET);
+}
+
+export async function signAccessToken(payload: {
+  sub: string;
+  role: UserRole;
+  aud: TokenAudience;
+}): Promise<string> {
+  return new SignJWT({ role: payload.role })
+    .setProtectedHeader({ alg: ALGORITHM })
+    .setSubject(payload.sub)
+    .setAudience(payload.aud)
+    .setIssuer(ISSUER)
+    .setIssuedAt()
+    .setExpirationTime(`${String(env.ACCESS_TOKEN_TTL_MINUTES)}m`)
+    .sign(accessKey());
+}
+
+/**
+ * Verifica un access token exigiendo la audiencia esperada.
+ *
+ * Ese `audience` es la clave del aislamiento del admin: un token de cliente
+ * presentado en una ruta de admin falla AQUÍ, en la verificación
+ * criptográfica, antes de llegar a ninguna comprobación de permisos.
+ */
+export async function verifyAccessToken(
+  token: string,
+  audience: TokenAudience,
+): Promise<AccessTokenPayload> {
+  const { payload } = await jwtVerify(token, accessKey(), {
+    algorithms: [ALGORITHM], // fijo: impide el ataque de confusión de algoritmo
+    issuer: ISSUER,
+    audience,
+  });
+
+  if (typeof payload.sub !== "string" || typeof payload.role !== "string") {
+    throw new Error("Token con contenido inesperado");
+  }
+
+  return {
+    sub: payload.sub,
+    role: payload.role as UserRole,
+    aud: audience,
+  };
+}
+
+/**
+ * Token efímero que prueba "esta persona ya acertó la contraseña".
+ *
+ * Sin él, el endpoint de 2FA aceptaría un código de 6 dígitos suelto y
+ * cualquiera podría saltarse el primer factor: bastaría adivinar un número de
+ * un millón contra una cuenta cuya contraseña no conoce. Con él, hay que
+ * superar los dos factores en orden.
+ *
+ * Dura 5 minutos y usa un secreto distinto (el de refresco), para que no sirva
+ * como token de acceso ni al revés.
+ */
+const CHALLENGE_AUDIENCE = "two-factor-challenge";
+
+export async function signTwoFactorChallenge(userId: string): Promise<string> {
+  return new SignJWT({})
+    .setProtectedHeader({ alg: ALGORITHM })
+    .setSubject(userId)
+    .setAudience(CHALLENGE_AUDIENCE)
+    .setIssuer(ISSUER)
+    .setIssuedAt()
+    .setExpirationTime("5m")
+    .sign(new TextEncoder().encode(env.JWT_REFRESH_SECRET));
+}
+
+export async function verifyTwoFactorChallenge(token: string): Promise<string> {
+  const { payload } = await jwtVerify(
+    token,
+    new TextEncoder().encode(env.JWT_REFRESH_SECRET),
+    { algorithms: [ALGORITHM], issuer: ISSUER, audience: CHALLENGE_AUDIENCE },
+  );
+
+  if (typeof payload.sub !== "string") {
+    throw new Error("Challenge con contenido inesperado");
+  }
+  return payload.sub;
 }
