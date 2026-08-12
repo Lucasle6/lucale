@@ -5,8 +5,9 @@ E-commerce fullstack construido de cero. Proyecto de graduación.
 **Stack** — Next.js 15 · React 19 · TypeScript · Fastify 5 · PostgreSQL 17 · Prisma ·
 Stripe · Tailwind v4
 
-**Estado** — Días 1–2 completados: monorepo y toolchain; esquema de datos con 15 tablas,
-migración aplicada y catálogo de ejemplo sembrado. Siguiente: Día 3 — esqueleto de la API.
+**Estado** — Días 1–4 completados: monorepo y toolchain, 15 tablas con catálogo sembrado,
+API por capas con defensas HTTP, y autenticación completa con 2FA. 79 tests en verde.
+Siguiente: Día 5 — autenticación de administrador aislada y RBAC.
 
 ---
 
