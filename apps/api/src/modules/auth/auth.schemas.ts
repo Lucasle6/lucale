@@ -132,6 +132,52 @@ export const loginResponseSchema = z.discriminatedUnion("status", [
   }),
 ]);
 
+// ─── Segundo factor ──────────────────────────────────────────────────────────
+
+export const completeTwoFactorSchema = z
+  .object({
+    // Prueba de que la contraseña ya fue correcta (emitido por el login).
+    challengeToken: z.string().min(20).max(1000),
+    totpCode: z
+      .string()
+      .regex(/^\d{6}$/, "el código son 6 dígitos")
+      .optional(),
+    backupCode: z.string().min(10).max(20).optional(),
+  })
+  .refine((value) => value.totpCode !== undefined || value.backupCode !== undefined, {
+    message: "Envía el código de tu app o uno de respaldo",
+  });
+
+export const confirmTwoFactorSchema = z.object({
+  totpCode: z.string().regex(/^\d{6}$/, "el código son 6 dígitos"),
+});
+
+/** Desactivar el 2FA o regenerar códigos exige la contraseña actual. */
+export const passwordConfirmationSchema = z.object({
+  password: z.string().min(1).max(128),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: passwordSchema,
+});
+
+export const twoFactorSetupResponseSchema = z.object({
+  qrDataUrl: z.string(),
+  manualEntryKey: z.string(),
+});
+
+export const backupCodesResponseSchema = z.object({
+  backupCodes: z.array(z.string()),
+  message: z.string(),
+});
+
+export const messageResponseSchema = z.object({
+  message: z.string(),
+});
+
+export type CompleteTwoFactorInput = z.infer<typeof completeTwoFactorSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;

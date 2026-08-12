@@ -6,6 +6,7 @@
  */
 
 import compress from "@fastify/compress";
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -14,6 +15,9 @@ import { env } from "../config/env.js";
 import { ForbiddenError } from "../lib/errors.js";
 
 export async function registerSecurity(app: FastifyInstance): Promise<void> {
+  // Cookies firmadas: si alguien manipula el valor, unsignCookie lo detecta.
+  await app.register(cookie, { secret: env.COOKIE_SECRET });
+
   // Cabeceras de seguridad: X-Frame-Options (anti-clickjacking),
   // X-Content-Type-Options: nosniff, Strict-Transport-Security, etc.
   await app.register(helmet, {
@@ -55,6 +59,11 @@ export async function registerSecurity(app: FastifyInstance): Promise<void> {
   // Redis, porque cada instancia cuenta por separado y el límite real se
   // multiplica. Con una sola instancia la memoria basta.
   await app.register(rateLimit, {
+    // Bajo Vitest se desactiva: un archivo de tests crea decenas de cuentas y
+    // chocaría con el límite de 3 registros/hora, haciendo fallar pruebas que
+    // no tienen nada que ver. Los límites se verifican por separado, contra el
+    // servidor real, y en la auditoría del Día 12.
+    global: env.VITEST === undefined,
     max: 100,
     timeWindow: "1 minute",
     // El plugin LANZA lo que devuelve esta función, así que el objeto debe

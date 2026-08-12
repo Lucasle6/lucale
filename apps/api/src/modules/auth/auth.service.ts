@@ -407,6 +407,102 @@ export async function verifyEmail(token: string): Promise<void> {
   await authRepository.updateUser(stored.userId, { emailVerifiedAt: new Date() });
 }
 
+// ─── Recuperación de contraseña ──────────────────────────────────────────────
+
+/**
+ * Solicita un enlace de recuperación.
+ *
+ * Responde EXACTAMENTE lo mismo exista o no el correo. Si distinguiéramos,
+ * este endpoint se convertiría en un buscador de clientes: bastaría probar
+ * correos para saber quién compra en la tienda.
+ *
+ * Por eso no lanza nunca: el controller responde el mismo mensaje siempre.
+ */
+export async function requestPasswordReset(email: string, mailer: Mailer): Promise<void> {
+  const user = await authRepository.findUserByEmail(email);
+  if (user === null) return;
+
+  // Al emitir uno nuevo, los anteriores dejan de valer: si pides tres veces,
+  // solo el último enlace funciona. Los otros podrían estar en un buzón
+  // comprometido.
+  await authRepository.invalidatePendingTokens(
+    user.id,
+    VerificationTokenType.PASSWORD_RESET,
+  );
+
+  const token = generateToken();
+  await authRepository.createVerificationToken({
+    userId: user.id,
+    tokenHash: hashToken(token),
+    type: VerificationTokenType.PASSWORD_RESET,
+    // Una hora: suficiente para revisar el correo, corto para que un enlace
+    // olvidado en la bandeja no siga sirviendo mañana.
+    expiresAt: expiresInMinutes(60),
+  });
+
+  await mailer.sendPasswordResetEmail(user.email, token);
+}
+
+/**
+ * Cambia la contraseña con un token de recuperación.
+ *
+ * Cierra TODAS las sesiones del usuario, y ese paso es el que da sentido a
+ * todo lo demás: si alguien recupera su contraseña suele ser porque sospecha
+ * un robo. Si el atacante ya tenía sesión abierta, cambiar la contraseña sin
+ * cerrar sesiones no lo echaría — seguiría dentro con su refresh token de 30
+ * días.
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  const stored = await authRepository.findVerificationToken(
+    hashToken(token),
+    VerificationTokenType.PASSWORD_RESET,
+  );
+
+  if (stored === null) {
+    throw new ConflictError("El enlace no es válido o ya caducó");
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+
+  // Un solo uso: marcar antes de nada, para que un doble envío no valga.
+  await authRepository.markVerificationTokenUsed(stored.id);
+
+  await authRepository.updateUser(stored.userId, {
+    passwordHash,
+    // Recuperar la contraseña demuestra control del buzón, así que de paso
+    // damos el correo por verificado y levantamos cualquier bloqueo.
+    emailVerifiedAt: stored.user.emailVerifiedAt ?? new Date(),
+    failedLoginAttempts: 0,
+    lockedUntil: null,
+  });
+
+  await authRepository.revokeAllUserTokens(stored.userId);
+}
+
+/**
+ * Cambia la contraseña estando dentro. Exige la actual.
+ *
+ * Cierra las demás sesiones pero se puede conservar la actual, porque aquí el
+ * usuario ya demostró que es él al escribir su contraseña vigente.
+ */
+export async function changePassword(
+  user: User,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  if (!(await verifyPassword(user.passwordHash, currentPassword))) {
+    throw new UnauthorizedError("La contraseña actual no es correcta");
+  }
+
+  await authRepository.updateUser(user.id, {
+    passwordHash: await hashPassword(newPassword),
+  });
+
+  // Si la contraseña se cambió por sospecha de robo, las sesiones viejas del
+  // atacante mueren aquí.
+  await authRepository.revokeAllUserTokens(user.id);
+}
+
 /** Perfil público del usuario: nunca incluye hash ni secretos. */
 export function toProfile(user: User) {
   return {

@@ -16,6 +16,8 @@ import { env, isDevelopment, isProduction } from "./config/env.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
 import { registerSecurity } from "./plugins/security.js";
 import { registerSwagger } from "./plugins/swagger.js";
+import { createLoggerMailer } from "./lib/mailer.js";
+import { authRoutes } from "./modules/auth/auth.routes.js";
 import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -81,11 +83,16 @@ export async function buildApp(): Promise<FastifyInstance> {
     }),
   );
 
+  // El envío de correos se inyecta: hoy escribe en el log, en la Semana 3 será
+  // Resend. Los services dependen de la interfaz, no del proveedor.
+  const mailer = createLoggerMailer(app.log);
+
   // Versionamos desde el principio: publicar /v2 mañana no rompe a quien ya
   // consume /v1.
   await app.register(
     (instance) => {
       catalogRoutes(instance);
+      authRoutes(instance, mailer);
       return Promise.resolve();
     },
     { prefix: "/v1" },
