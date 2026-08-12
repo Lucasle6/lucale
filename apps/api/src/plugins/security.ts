@@ -9,10 +9,12 @@ import compress from "@fastify/compress";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
+import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
 import type { FastifyInstance } from "fastify";
 import { env } from "../config/env.js";
 import { ForbiddenError } from "../lib/errors.js";
+import { MAX_IMAGE_BYTES } from "../lib/image-validation.js";
 
 export async function registerSecurity(app: FastifyInstance): Promise<void> {
   // Cookies firmadas: si alguien manipula el valor, unsignCookie lo detecta.
@@ -79,4 +81,15 @@ export async function registerSecurity(app: FastifyInstance): Promise<void> {
 
   // Respuestas comprimidas: menos ancho de banda, cargas más rápidas.
   await app.register(compress, { global: true });
+
+  // Subida de archivos. Los límites son la PRIMERA barrera: cortan la conexión
+  // antes de leer el archivo entero en memoria, así que un archivo de 2 GB no
+  // llega siquiera a la validación de contenido.
+  await app.register(multipart, {
+    limits: {
+      fileSize: MAX_IMAGE_BYTES,
+      files: 1, // un archivo por petición
+      fields: 4, // alt y poco más
+    },
+  });
 }

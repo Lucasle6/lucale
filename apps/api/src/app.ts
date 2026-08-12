@@ -17,6 +17,8 @@ import { registerErrorHandler } from "./plugins/error-handler.js";
 import { registerSecurity } from "./plugins/security.js";
 import { registerSwagger } from "./plugins/swagger.js";
 import { createLoggerMailer } from "./lib/mailer.js";
+import { createLocalStorage } from "./lib/storage.js";
+import { adminCatalogRoutes } from "./modules/admin/admin-catalog.routes.js";
 import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
@@ -84,9 +86,11 @@ export async function buildApp(): Promise<FastifyInstance> {
     }),
   );
 
-  // El envío de correos se inyecta: hoy escribe en el log, en la Semana 3 será
-  // Resend. Los services dependen de la interfaz, no del proveedor.
+  // El envío de correos y el almacenamiento se inyectan: hoy escriben en el
+  // log y en disco, en la Semana 3 serán Resend y Cloudflare R2. Los services
+  // dependen de la interfaz, no del proveedor.
   const mailer = createLoggerMailer(app.log);
+  const storage = createLocalStorage(app.log);
 
   // Versionamos desde el principio: publicar /v2 mañana no rompe a quien ya
   // consume /v1.
@@ -95,6 +99,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       catalogRoutes(instance);
       authRoutes(instance, mailer);
       adminRoutes(instance, mailer);
+      adminCatalogRoutes(instance, storage);
       return Promise.resolve();
     },
     { prefix: "/v1" },
