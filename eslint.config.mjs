@@ -24,10 +24,14 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: {
-          // Archivos de configuración sueltos que no pertenecen a ningún
-          // tsconfig (viven junto a él, no dentro de su `include`). Sin esto,
-          // el análisis con tipos los rechaza por no encontrarles proyecto.
-          allowDefaultProject: ["*.config.ts", "*/*.config.ts", "*/*/*.config.ts"],
+          // Archivos de configuración que NO pertenecen a ningún tsconfig
+          // (viven junto a él, fuera de su `include`). Sin esto, el análisis
+          // con tipos los rechaza por no encontrarles proyecto.
+          //
+          // La lista es explícita a propósito: un patrón amplio como
+          // `*/*/*.config.ts` también captura next.config.ts, que SÍ está
+          // dentro del proyecto de la app web, y eso provoca el error opuesto.
+          allowDefaultProject: ["*.config.ts", "apps/*/vitest.config.ts"],
         },
         tsconfigRootDir: import.meta.dirname,
       },

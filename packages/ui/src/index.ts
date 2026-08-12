@@ -1,7 +1,27 @@
 /**
- * @bodegon/ui — design system: tokens y componentes base.
+ * @bodegon/ui — design system compartido entre la tienda y el panel.
  *
- * Se llena en el Día 6 (Módulo 5 — Design system). Ver docs/04-design-system.md.
+ * Los componentes viven aquí, no dentro de una app, porque las dos los usan.
+ * Un botón definido una vez, con su accesibilidad resuelta una vez.
+ *
+ * Los tokens de color y tipografía NO están aquí: viven en el CSS de cada app
+ * (apps/web/src/app/globals.css), porque Tailwind v4 los define con @theme.
+ * Ver docs/04-design-system.md.
  */
 
-export const PACKAGE_NAME = "@bodegon/ui";
+export { cn } from "./cn";
+
+export { Button } from "./button";
+export type { ButtonProps, ButtonSize, ButtonVariant } from "./button";
+
+export { Input, Select, Textarea } from "./form";
+export type { InputProps, SelectProps, TextareaProps } from "./form";
+
+export { Badge, Card, EmptyState, Skeleton } from "./display";
+export type {
+  BadgeProps,
+  BadgeTone,
+  CardProps,
+  EmptyStateProps,
+  SkeletonProps,
+} from "./display";
