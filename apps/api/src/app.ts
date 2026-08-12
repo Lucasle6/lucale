@@ -17,6 +17,7 @@ import { registerErrorHandler } from "./plugins/error-handler.js";
 import { registerSecurity } from "./plugins/security.js";
 import { registerSwagger } from "./plugins/swagger.js";
 import { createLoggerMailer } from "./lib/mailer.js";
+import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
 
@@ -93,6 +94,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     (instance) => {
       catalogRoutes(instance);
       authRoutes(instance, mailer);
+      adminRoutes(instance, mailer);
       return Promise.resolve();
     },
     { prefix: "/v1" },

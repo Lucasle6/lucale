@@ -22,6 +22,7 @@ import {
   signTwoFactorChallenge,
   verifyTwoFactorChallenge,
 } from "../../lib/jwt.js";
+import type { TokenAudience } from "../../lib/jwt.js";
 import type { Mailer } from "../../lib/mailer.js";
 import {
   hashPassword,
@@ -235,14 +236,16 @@ async function registrarIntentoFallido(user: User, mailer: Mailer): Promise<void
 export async function createSession(
   user: User,
   context: RequestContext,
+  audience: TokenAudience = TOKEN_AUDIENCE.customer,
 ): Promise<SessionTokens> {
-  return crearTokensDeSesion(user, randomUUID(), context);
+  return crearTokensDeSesion(user, randomUUID(), context, audience);
 }
 
 export async function crearTokensDeSesion(
   user: User,
   familyId: string,
   context: RequestContext,
+  audience: TokenAudience = TOKEN_AUDIENCE.customer,
 ): Promise<SessionTokens> {
   const refreshToken = generateToken();
 
@@ -257,10 +260,13 @@ export async function crearTokensDeSesion(
     userAgent: context.userAgent,
   });
 
+  // La audiencia es lo que separa los dos mundos: un token emitido para
+  // "customer" falla al VERIFICARSE en una ruta de admin, antes de llegar a
+  // ninguna comprobación de rol. Criptografía, no un `if`.
   const accessToken = await signAccessToken({
     sub: user.id,
     role: user.role,
-    aud: TOKEN_AUDIENCE.customer,
+    aud: audience,
   });
 
   return { accessToken, refreshToken, refreshTokenId: creado.id };
