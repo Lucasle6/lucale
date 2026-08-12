@@ -5,10 +5,10 @@ E-commerce fullstack construido de cero. Proyecto de graduación.
 **Stack** — Next.js 15 · React 19 · TypeScript · Fastify 5 · PostgreSQL 17 · Prisma ·
 Stripe · Tailwind v4
 
-**Estado** — **Semana 1 completa** (Días 1–5): monorepo y toolchain, 15 tablas con catálogo
-sembrado, API por capas con defensas HTTP, autenticación con 2FA, y panel de administración
-aislado con RBAC y auditoría. 93 tests en verde.
-Siguiente: Semana 2 — Día 6, design system y primera interfaz.
+**Estado** — Semana 1 completa y Día 6 hecho: monorepo y toolchain, 15 tablas con catálogo
+sembrado, API por capas con defensas HTTP, autenticación con 2FA, panel de administración
+aislado con RBAC y auditoría, y design system con paleta verificada contra WCAG.
+93 tests en verde. Siguiente: Día 7 — CRUD de productos y subida de imágenes.
 
 ---
 
@@ -44,11 +44,21 @@ La API queda en http://localhost:4000 (prueba `/health`) y Adminer en
 http://localhost:8080 para inspeccionar la base de datos (servidor `postgres`,
 usuario y contraseña según tu `.env`).
 
+Para la tienda, en otra terminal:
+
+```bash
+pnpm dev:web
+```
+
+Queda en http://localhost:3000, y el escaparate del design system en
+http://localhost:3000/design-system.
+
 ### Comandos
 
 | Comando           | Qué hace                                                |
 | ----------------- | ------------------------------------------------------- |
 | `pnpm dev`        | Compila los packages y arranca la API en modo watch     |
+| `pnpm dev:web`    | Arranca la tienda (Next.js) en el puerto 3000           |
 | `pnpm typecheck`  | TypeScript en todos los workspaces                      |
 | `pnpm lint`       | ESLint con reglas que usan información de tipos         |
 | `pnpm format`     | Prettier sobre todo el repo                             |
