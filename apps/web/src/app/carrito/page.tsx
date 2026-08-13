@@ -1,3 +1,4 @@
+import { amountUntilFreeShipping, calculateTotals, formatMoney } from "@bodegon/shared";
 import { Button, Card, EmptyState } from "@bodegon/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -21,6 +22,14 @@ export const metadata: Metadata = {
  */
 export default async function CarritoPage(): Promise<ReactElement> {
   const carrito = await getCartServer();
+
+  // Las mismas funciones que usa la API para congelar el pedido. Una sola
+  // fórmula para el envío y el IVA, viva en `@bodegon/shared`.
+  //
+  // Se le pasan las LÍNEAS, no el subtotal: cada producto trae su propia tasa
+  // (0% los alimentos, 16% los utensilios) y el impuesto se suma línea a línea.
+  const totales = calculateTotals(carrito.lines);
+  const faltaParaEnvioGratis = amountUntilFreeShipping(carrito.subtotalCents);
 
   return (
     <>
@@ -59,16 +68,30 @@ export default async function CarritoPage(): Promise<ReactElement> {
                   </div>
                   <div className="flex justify-between">
                     <dt className="text-ink-700">Envío</dt>
-                    <dd className="text-ink-500">Se calcula al pagar</dd>
+                    <dd className="text-ink-900">
+                      {totales.shippingCents === 0
+                        ? "Gratis"
+                        : formatMoney(totales.shippingCents)}
+                    </dd>
                   </div>
                 </dl>
+
+                {faltaParaEnvioGratis > 0 ? (
+                  <p className="mt-3 rounded-md bg-brand-50 px-3 py-2 text-sm text-brand-700">
+                    Te faltan {formatMoney(faltaParaEnvioGratis)} para el envío gratis.
+                  </p>
+                ) : null}
 
                 <div className="mt-4 flex justify-between border-t border-border-subtle pt-4">
                   <span className="text-ink-900">Total</span>
                   <span className="font-display text-2xl text-ink-900">
-                    {carrito.subtotalFormatted}
+                    {formatMoney(totales.totalCents)}
                   </span>
                 </div>
+
+                <p className="mt-1 text-right text-sm text-ink-500">
+                  IVA incluido: {formatMoney(totales.taxCents)}
+                </p>
 
                 {carrito.hasIssues ? (
                   <p role="alert" className="mt-4 text-sm text-danger">
@@ -78,13 +101,22 @@ export default async function CarritoPage(): Promise<ReactElement> {
                 ) : null}
 
                 <div className="mt-5">
-                  {/* El pago llega el Día 11. Se anuncia en vez de fingir que
-                      funciona. */}
-                  <Button fullWidth size="lg" disabled>
-                    Pagar
-                  </Button>
+                  {/* Si alguna línea se pasa del inventario no se deja avanzar:
+                      la API lo rechazaría igualmente, y es mejor decirlo aquí
+                      que dejar que descubra el problema a mitad del pago. */}
+                  {carrito.hasIssues ? (
+                    <Button fullWidth size="lg" disabled>
+                      Pagar
+                    </Button>
+                  ) : (
+                    <Link href="/checkout" className="block">
+                      <Button fullWidth size="lg">
+                        Pagar
+                      </Button>
+                    </Link>
+                  )}
                   <p className="mt-2 text-center text-sm text-ink-500">
-                    El pago con tarjeta se activa muy pronto.
+                    Pago seguro con tarjeta. Los datos los procesa Stripe.
                   </p>
                 </div>
               </Card>
