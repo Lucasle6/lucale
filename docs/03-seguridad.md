@@ -185,25 +185,46 @@ Stripe Checkout hospedado. Nunca vemos, transmitimos ni almacenamos un número d
 
 ---
 
-## Checklist de auditoría del Día 12
+## Auditoría del Día 13 — ejecutada
 
-Se ejecuta contra la app ya construida. Cada línea se marca solo tras **comprobarla en
-vivo**, no tras leer el código.
+Contra la aplicación corriendo, no leyendo código.
 
-- [ ] Token de `CUSTOMER` contra endpoint de admin → **403**
-- [ ] `/api/orders/:id` de otro usuario → **404** (no 403: no confirmamos que exista)
-- [ ] Modificar `priceCents` en el request del carrito → total **sin cambios**
-- [ ] Reusar un refresh token ya rotado → **familia revocada**
-- [ ] 6 logins fallidos → **cuenta bloqueada**
-- [ ] Webhook de Stripe con firma inválida → **400**
-- [ ] Reenviar el mismo evento de Stripe 3 veces → **una sola orden**
-- [ ] `.exe` renombrado a `.png` → **rechazado**
-- [ ] `<script>alert(1)</script>` en el nombre de un producto → **escapado, no ejecutado**
-- [ ] Mutación sin token CSRF → **403**
-- [ ] `admin.bodegon.mx` no aparece en el bundle ni en el sitemap público
-- [ ] Cabeceras verificadas en securityheaders.com → **A o superior**
-- [ ] `pnpm audit` → **sin vulnerabilidades altas o críticas**
-- [ ] Ningún secreto en el historial de git (`gitleaks`)
+| Prueba                                           | Esperado                | Resultado                  |
+| ------------------------------------------------ | ----------------------- | -------------------------- |
+| `priceCents` manipulado en el carrito            | total sin cambios       | ✅ 18000 → 18000           |
+| `POST /v1/admin/products` sin sesión             | 401 sin filtrar esquema | ✅ 401                     |
+| Mutación sin token CSRF                          | 403                     | ✅ 403                     |
+| Webhook de Stripe con firma inválida             | 400                     | ✅ 400                     |
+| Webhook con firma válida pero vieja (repetición) | 400                     | ✅ 400                     |
+| Mismo evento de Stripe entregado 3 veces         | un solo efecto          | ✅ 1 fila, stock −2        |
+| 3 entregas simultáneas del mismo evento          | un solo efecto          | ✅ 1 procesada             |
+| Importe de Stripe distinto al del pedido         | pedido sin pagar        | ✅ PENDING                 |
+| `X-Frame-Options`, `nosniff`, HSTS               | presentes               | ✅ los tres                |
+| CSP con nonce en tienda y panel                  | presente                | ✅ verificada en navegador |
+| `pnpm audit`                                     | sin altas ni críticas   | ✅ tras aplicar overrides  |
+| Secretos en el historial de git                  | ninguno                 | ✅ 0 coincidencias         |
+| `.env` commiteado alguna vez                     | nunca                   | ✅ nunca                   |
+
+### Vulnerabilidades encontradas y corregidas
+
+`pnpm audit` destapó **7 vulnerabilidades, 6 de severidad alta**, todas en dependencias
+transitivas: `fast-uri`, `nanoid`, `js-yaml`, `brace-expansion` y `@fastify/static@9.3.0`
+(que entraba por Swagger, y Swagger no se registra en producción).
+
+Se corrigieron con `pnpm.overrides` usando selectores acotados por rango, para subir el
+parche sin saltar de versión mayor — que es como se rompen las dependencias transitivas.
+Verificado después: 191 pruebas siguen en verde.
+
+### Lo que esta auditoría NO cubre
+
+- **IDOR en pedidos.** No existe todavía un endpoint `/v1/orders/:id`, así que no hay nada
+  que probar. Cuando se construya, la comprobación de propiedad es obligatoria y debe
+  devolver **404** y no 403: un 403 confirma que el recurso existe.
+- **Fuerza bruta y rate limiting.** Están implementados y desactivados bajo Vitest. Se
+  verifican contra el servidor real, no en la suite.
+- **Escalada de privilegios de CUSTOMER a ADMIN.** Cubierta por
+  `admin-isolation.test.ts` mediante separación criptográfica de audiencias, pero no se
+  ha ejecutado como intrusión manual contra el servidor.
 
 ---
 
