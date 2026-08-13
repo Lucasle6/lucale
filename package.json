@@ -28,7 +28,9 @@
     "db:seed": "pnpm --filter @bodegon/db seed",
     "db:generate": "pnpm --filter @bodegon/db generate",
     "db:studio": "pnpm --filter @bodegon/db studio",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:test:create": "docker exec bodegon-postgres psql -U bodegon -d bodegon -tc \"SELECT 1 FROM pg_database WHERE datname='bodegon_test'\" | grep -q 1 || docker exec bodegon-postgres createdb -U bodegon bodegon_test",
+    "db:test:setup": "pnpm db:test:create && pnpm --filter @bodegon/db migrate:test && pnpm --filter @bodegon/db seed:test"
   },
   "lint-staged": {
     "*.{ts,tsx,mjs}": [

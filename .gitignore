@@ -12,6 +12,10 @@ out/
 # Entorno — NUNCA subir secretos
 .env
 .env.*
+# Excepciones: no llevan secretos y sin ellas el proyecto no arranca ni se
+# prueba recién clonado.
+!.env.example
+!.env.test
 !.env.example
 
 # Prisma

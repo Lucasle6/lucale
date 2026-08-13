@@ -22,7 +22,9 @@
     "migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "validate": "dotenv -e ../../.env -- prisma validate",
     "studio": "dotenv -e ../../.env -- prisma studio",
-    "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts"
+    "seed": "dotenv -e ../../.env -- tsx prisma/seed.ts",
+    "migrate:test": "dotenv -e ../../.env.test -e ../../.env -- prisma migrate deploy",
+    "seed:test": "dotenv -e ../../.env.test -e ../../.env -- tsx prisma/seed.ts"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
