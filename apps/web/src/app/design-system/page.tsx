@@ -9,6 +9,7 @@ import {
   Textarea,
 } from "@bodegon/ui";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import type { ReactElement, ReactNode } from "react";
 
 export const metadata: Metadata = {
@@ -18,6 +19,19 @@ export const metadata: Metadata = {
 };
 
 /**
+ * FUERA DE PRODUCCIÓN, no solo fuera de los buscadores.
+ *
+ * `robots.txt` y `noindex` son PETICIONES a los rastreadores, no controles de
+ * acceso: quien teclee la URL entra igual. Esta página no filtra nada crítico,
+ * pero es ruido interno en un sitio público — y la costumbre de confundir
+ * "no indexado" con "no accesible" es la que acaba dejando un panel de
+ * pruebas abierto a internet.
+ */
+function fueraDeProduccion(): void {
+  if (process.env.NODE_ENV === "production") notFound();
+}
+
+/**
  * Escaparate del design system.
  *
  * Existe para ver todos los componentes juntos, en todos sus estados. Sirve
@@ -25,6 +39,8 @@ export const metadata: Metadata = {
  * detectar inconsistencias antes de que se propaguen por la aplicación.
  */
 export default function DesignSystemPage(): ReactElement {
+  fueraDeProduccion();
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-16">
       <header className="mb-16">
@@ -178,8 +194,8 @@ export default function DesignSystemPage(): ReactElement {
       <Seccion titulo="Tarjetas">
         <div className="grid gap-4 sm:grid-cols-2">
           <Card interactive>
-            <h3 className="text-xl text-ink-900">Lámpara Luna</h3>
-            <p className="mt-1 text-sm text-ink-500">Decoración</p>
+            <h3 className="text-xl text-ink-900">Aceite de Ajo Rostizado</h3>
+            <p className="mt-1 text-sm text-ink-500">Aceites</p>
             <p className="mt-3 text-lg font-medium text-ink-900">desde $449.90</p>
             <div className="mt-4">
               <Badge tone="success">En stock</Badge>

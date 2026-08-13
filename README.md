@@ -5,9 +5,15 @@ E-commerce fullstack construido de cero. Proyecto de graduación.
 **Stack** — Next.js 16 · React 19 · TypeScript · Fastify 5 · PostgreSQL 17 · Prisma 6 ·
 Stripe · Tailwind v4
 
-**Estado** — **Semanas 1 y 2 completas** (Días 1–10). La tienda tiene catálogo con SEO y
-carrito funcional, y el panel permite gestionar el inventario de punta a punta.
-137 tests en verde. Siguiente: Semana 3 — Día 11, checkout con Stripe.
+**Estado** — **Los 15 días completos.** Una compra funciona de punta a punta: catálogo →
+carrito → checkout → Stripe → webhook firmado → pedido pagado → inventario descontado.
+
+**198 pruebas** en verde: 172 de la API, 19 de la aritmética de dinero y 7 recorridos en
+un navegador real. Integración continua, auditoría de dependencias y 21 controles de
+seguridad verificados en vivo contra el servidor, no leyendo código.
+
+Falta el paso que no depende del código: desplegarlo. El procedimiento está en
+[docs/05-despliegue.md](docs/05-despliegue.md).
 
 ---
 
@@ -20,6 +26,7 @@ carrito funcional, y el panel permite gestionar el inventario de punta a punta.
 | [Modelo de datos](docs/02-modelo-de-datos.md) | Esquema PostgreSQL                    |
 | [Seguridad](docs/03-seguridad.md)             | 20 controles + checklist de auditoría |
 | [Design system](docs/04-design-system.md)     | Paleta, tipografía y componentes      |
+| [Despliegue](docs/05-despliegue.md)           | Runbook de producción y operación     |
 
 ## Estructura
 
@@ -91,12 +98,16 @@ Cada commit dispara dos hooks de husky:
 
 ## Requisitos previos
 
-| Requisito                     | Estado                                       |
-| ----------------------------- | -------------------------------------------- |
-| Node ≥ 22 (aquí: v26.5.0)     | ✅                                           |
-| pnpm ≥ 9 (aquí: 9.15.9)       | ✅                                           |
-| Docker (aquí: 29.6.1)         | ✅                                           |
-| Cuenta de Stripe en modo test | ⬜ **crear en la Semana 1**                  |
-| Dominio registrado            | ⬜ **comprar en la Semana 1** (el DNS tarda) |
-| Cuenta de Resend              | ⬜ Semana 3                                  |
-| Cuenta de Cloudflare R2       | ⬜ Semana 2                                  |
+| Requisito                     | Estado                                     |
+| ----------------------------- | ------------------------------------------ |
+| Node ≥ 22 (aquí: v26.5.0)     | ✅                                         |
+| pnpm ≥ 9 (aquí: 9.15.9)       | ✅                                         |
+| Docker (aquí: 29.6.1)         | ✅                                         |
+| Cuenta de Stripe en modo test | ✅                                         |
+| Dominio registrado            | ⬜ opcional: el subdominio de Vercel sirve |
+| Cuenta de Resend              | ⬜ los correos hoy se escriben en el log   |
+| Cuenta de Cloudflare R2       | ⬜ las imágenes hoy se sirven en local     |
+
+Las tres pendientes no bloquean nada: el proyecto funciona sin ellas, con la
+implementación local detrás de la misma interfaz. Cambiarlas es sustituir un
+proveedor, no reescribir código.
