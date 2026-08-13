@@ -31,7 +31,13 @@ export default tseslint.config(
           // La lista es explícita a propósito: un patrón amplio como
           // `*/*/*.config.ts` también captura next.config.ts, que SÍ está
           // dentro del proyecto de la app web, y eso provoca el error opuesto.
-          allowDefaultProject: ["*.config.ts", "apps/*/vitest.config.ts"],
+          allowDefaultProject: [
+            "*.config.ts",
+            "apps/*/vitest.config.ts",
+            // packages/shared tiene su propio runner desde el Día 11: la
+            // aritmética del IVA se prueba donde vive, no desde la API.
+            "packages/*/vitest.config.ts",
+          ],
         },
         tsconfigRootDir: import.meta.dirname,
       },

@@ -46,6 +46,14 @@ export const cartLineSchema = z.object({
   unitPriceFormatted: z.string(),
   lineTotalCents: z.int(),
   lineTotalFormatted: z.string(),
+  /**
+   * Tasa de IVA del producto en puntos base (0 alimentos, 1600 el resto).
+   *
+   * Viaja al cliente para que la tienda pueda mostrar el mismo total que va a
+   * cobrar el servidor. Es un dato de SALIDA: no existe ninguna entrada donde
+   * el cliente pueda proponer una tasa, igual que no puede proponer un precio.
+   */
+  taxRateBps: z.int(),
   /** Unidades disponibles, para poder avisar si el stock bajó. */
   availableStock: z.int(),
   /** true si la cantidad pedida ya no cabe en el inventario. */

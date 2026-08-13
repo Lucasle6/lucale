@@ -16,6 +16,7 @@
  */
 
 import { z } from "zod";
+import { TAX_RATE_STANDARD_BPS, TAX_RATE_ZERO_BPS } from "./checkout.js";
 
 /** Estados posibles de un producto, tal como los define el esquema Prisma. */
 export const productStatusSchema = z.enum(["DRAFT", "ACTIVE", "ARCHIVED"]);
@@ -57,8 +58,33 @@ export const variantUpdateSchema = variantInputSchema.partial().extend({
 
 // ─── Productos ───────────────────────────────────────────────────────────────
 
+/**
+ * Tasa de IVA del producto, limitada a los dos valores que existen en México.
+ *
+ * Se restringe en vez de aceptar cualquier entero porque un dedazo aquí tiene
+ * consecuencias fiscales: escribir `160` en lugar de `1600` declararía un 1.6%,
+ * y nada volvería a cuestionarlo — el número se congela en cada pedido y de ahí
+ * pasa a la contabilidad.
+ *
+ *   0     → productos destinados a la alimentación humana (art. 2-A de la Ley
+ *           del IVA): salsas, aceites comestibles, despensa
+ *   1600  → todo lo demás: utensilios, tablas, frascos vacíos
+ */
+export const taxRateBpsSchema = z.union([
+  z.literal(TAX_RATE_ZERO_BPS),
+  z.literal(TAX_RATE_STANDARD_BPS),
+]);
+
 export const createProductSchema = z.object({
   name: z.string().min(2).max(160),
+  /**
+   * Obligatoria y sin valor por defecto, a propósito.
+   *
+   * Un defecto invitaría a no pensarlo, y "se me pasó" no es una respuesta útil
+   * ante el SAT. Quien da de alta el producto decide explícitamente si lo que
+   * vende se come o no.
+   */
+  taxRateBps: taxRateBpsSchema,
   /** Si no se envía, se genera a partir del nombre. */
   slug: slugSchema.optional(),
   description: z.string().max(4000).optional(),
@@ -80,6 +106,9 @@ export const updateProductSchema = z.object({
   description: z.string().max(4000).nullable().optional(),
   categoryId: z.uuid().nullable().optional(),
   status: productStatusSchema.optional(),
+  /** Reclasificar un producto solo afecta a ventas FUTURAS: los pedidos ya
+   *  emitidos conservan la tasa congelada en su momento. */
+  taxRateBps: taxRateBpsSchema.optional(),
   variants: z.array(variantUpdateSchema).max(50).optional(),
   /**
    * Marca de tiempo que el cliente leyó al abrir el formulario.
@@ -132,6 +161,7 @@ export const adminProductSchema = z.object({
   slug: z.string(),
   description: z.string().nullable(),
   status: productStatusSchema,
+  taxRateBps: z.int(),
   categoryId: z.string().nullable(),
   categoryName: z.string().nullable(),
   variants: z.array(adminVariantSchema),
