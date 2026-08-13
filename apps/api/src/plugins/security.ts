@@ -53,6 +53,16 @@ export async function registerSecurity(app: FastifyInstance): Promise<void> {
     // Permite que viajen las cookies de sesión (Día 4). Es justamente lo que
     // hace imprescindible la allowlist de arriba.
     credentials: true,
+    /**
+     * Hay que declarar PATCH y DELETE explícitamente: por defecto el plugin
+     * solo anuncia GET, HEAD y POST.
+     *
+     * El fallo es silencioso y desconcertante — el navegador ve que el método
+     * no está en la lista del preflight y CANCELA la petición sin enviarla,
+     * así que en el servidor no aparece ni un error. Solo se detecta con una
+     * app cliente real: los tests con inject() no pasan por CORS.
+     */
+    methods: ["GET", "HEAD", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
   });
 
   // Límite global por IP. En el Día 4 el login llevará uno mucho más estricto.

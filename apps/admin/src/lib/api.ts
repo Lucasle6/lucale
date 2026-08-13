@@ -1,0 +1,71 @@
+/**
+ * Cliente de la API para el panel.
+ *
+ * Dos variantes, porque el panel llama a la API desde dos sitios distintos:
+ *
+ *   SERVIDOR (Server Components)  Next recibe la cookie del navegador pero NO
+ *                                 la reenvía sola: hay que leerla y ponerla en
+ *                                 la petición a mano.
+ *
+ *   NAVEGADOR (Client Components) El navegador adjunta la cookie por su cuenta
+ *                                 con credentials: "include".
+ *
+ * Las cookies se comparten entre localhost:3001 y localhost:4000 porque los
+ * navegadores no aíslan cookies por puerto, solo por host.
+ */
+
+/** URL base de la API. En producción será el dominio real. */
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
+
+export interface ApiError {
+  code: string;
+  message: string;
+  details?: unknown;
+}
+
+export class ApiRequestError extends Error {
+  constructor(
+    readonly status: number,
+    readonly error: ApiError,
+  ) {
+    super(error.message);
+    this.name = "ApiRequestError";
+  }
+}
+
+async function parsear<T>(response: Response): Promise<T> {
+  const texto = await response.text();
+  const cuerpo: unknown = texto === "" ? null : JSON.parse(texto);
+
+  if (!response.ok) {
+    const error =
+      typeof cuerpo === "object" && cuerpo !== null && "error" in cuerpo
+        ? (cuerpo.error as ApiError)
+        : { code: "UNKNOWN", message: "Error inesperado" };
+    throw new ApiRequestError(response.status, error);
+  }
+
+  return cuerpo as T;
+}
+
+// ─── Desde el navegador ──────────────────────────────────────────────────────
+
+/**
+ * Llamada desde un Client Component.
+ *
+ * `credentials: "include"` es lo que hace que la cookie httpOnly viaje. Sin
+ * eso, el navegador no la adjunta en peticiones a otro origen y la API
+ * respondería 401 aunque la sesión esté abierta.
+ */
+export async function apiClient<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    credentials: "include",
+    headers: {
+      ...(options.body instanceof FormData ? {} : { "content-type": "application/json" }),
+      ...options.headers,
+    },
+  });
+
+  return parsear<T>(response);
+}

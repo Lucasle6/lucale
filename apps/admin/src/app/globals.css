@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/** Tailwind necesita escanear packages/ui o no genera sus clases. */
+@source "../../../../packages/ui/src";
+
+/** Misma paleta que la tienda, desde la fuente única. */
+@import "../../../../packages/ui/src/tokens.css";
+
+/**
+ * El panel usa un fondo ligeramente más apagado que la tienda.
+ *
+ * No es capricho: son dos contextos mentales distintos. La tienda invita a
+ * mirar producto; el panel es una herramienta de trabajo donde pasas horas.
+ * El matiz ayuda a saber de un vistazo dónde estás — y evita el error de
+ * creer que estás editando cuando estás navegando.
+ */
+@layer base {
+  body {
+    background-color: var(--color-surface);
+  }
+}

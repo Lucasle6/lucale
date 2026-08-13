@@ -1,9 +1,18 @@
 /**
- * Contratos del catálogo desde el panel de administración.
+ * Contratos del catálogo, compartidos entre la API y el panel.
  *
- * Los precios llegan en CENTAVOS ENTEROS, no en pesos con decimales. El
- * formulario del admin muestra "149.90" pero envía 14990: la conversión ocurre
- * en el borde, y dentro del sistema el dinero nunca es decimal.
+ * Viven aquí y no dentro de apps/api porque el formulario del panel valida con
+ * EXACTAMENTE los mismos esquemas que el servidor. Duplicarlos haría que
+ * divergieran: cambias el precio máximo en el servidor, se te olvida en el
+ * formulario, y el usuario recibe un error que su pantalla no anticipó.
+ *
+ * Ojo: que compartan la regla no significa que la del cliente sustituya a la
+ * del servidor. La del cliente es para la experiencia; la del servidor es la
+ * que protege, y sigue ejecutándose siempre.
+ *
+ * Los precios viajan en CENTAVOS ENTEROS, no en pesos con decimales. El
+ * formulario muestra "149.90" pero envía 14990: la conversión ocurre en el
+ * borde, y dentro del sistema el dinero nunca es decimal.
  */
 
 import { z } from "zod";

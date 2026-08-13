@@ -22,7 +22,7 @@ import {
   createProductSchema,
   productParamsSchema,
   updateProductSchema,
-} from "./admin-catalog.schemas.js";
+} from "@bodegon/shared";
 
 const imageResponseSchema = z.object({
   id: z.string(),

@@ -18,7 +18,7 @@ import type {
   CreateCategoryInput,
   CreateProductInput,
   UpdateProductInput,
-} from "./admin-catalog.schemas.js";
+} from "@bodegon/shared";
 
 export interface ActionContext {
   actor: User;

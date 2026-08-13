@@ -16,7 +16,7 @@ import type {
   CreateCategoryInput,
   CreateProductInput,
   UpdateProductInput,
-} from "./admin-catalog.schemas.js";
+} from "@bodegon/shared";
 
 function contexto(request: FastifyRequest): ActionContext {
   return {

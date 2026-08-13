@@ -16,8 +16,9 @@ import { env, isDevelopment, isProduction } from "./config/env.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
 import { registerSecurity } from "./plugins/security.js";
 import { registerSwagger } from "./plugins/swagger.js";
+import fastifyStatic from "@fastify/static";
 import { createLoggerMailer } from "./lib/mailer.js";
-import { createLocalStorage } from "./lib/storage.js";
+import { UPLOAD_DIR, createLocalStorage } from "./lib/storage.js";
 import { adminCatalogRoutes } from "./modules/admin/admin-catalog.routes.js";
 import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
@@ -91,6 +92,30 @@ export async function buildApp(): Promise<FastifyInstance> {
   // dependen de la interfaz, no del proveedor.
   const mailer = createLoggerMailer(app.log);
   const storage = createLocalStorage(app.log);
+
+  /**
+   * Sirve las imágenes subidas, solo en desarrollo.
+   *
+   * En producción los archivos los sirve Cloudflare R2 desde un dominio
+   * distinto, y eso NO es un detalle de infraestructura: servir contenido
+   * subido por usuarios desde el mismo dominio que la aplicación permite que
+   * un archivo malicioso herede sus permisos —cookies, almacenamiento local—
+   * si el navegador llegara a interpretarlo.
+   *
+   * Aquí se compensa con dos cabeceras: nosniff impide que el navegador
+   * "adivine" el tipo, y Content-Disposition fuerza descarga en vez de
+   * interpretación para cualquier cosa que no sea una imagen reconocida.
+   */
+  if (!isProduction) {
+    await app.register(fastifyStatic, {
+      root: UPLOAD_DIR,
+      prefix: "/uploads/",
+      setHeaders(reply) {
+        void reply.header("X-Content-Type-Options", "nosniff");
+        void reply.header("Content-Security-Policy", "default-src 'none'");
+      },
+    });
+  }
 
   // Versionamos desde el principio: publicar /v2 mañana no rompe a quien ya
   // consume /v1.
