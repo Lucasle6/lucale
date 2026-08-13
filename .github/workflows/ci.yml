@@ -1,0 +1,126 @@
+# Integración continua de LuCaLe.
+#
+# Corre en cada push a main y en cada pull request. Lo que aquí falla, no se
+# fusiona: es la red que impide que un descuido llegue a producción cuando
+# alguien tiene prisa.
+#
+# El orden de los pasos no es casual. Va de lo más rápido a lo más lento, para
+# que un error de formato no te haga esperar tres minutos de tests antes de
+# enterarte.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancela ejecuciones anteriores de la misma rama: si empujas tres veces
+# seguidas, solo interesa el resultado de la última.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint, tipos y pruebas
+    runs-on: ubuntu-latest
+
+    services:
+      # Postgres real, no un simulacro. Las pruebas comprueban restricciones
+      # UNIQUE, transacciones y condiciones de carrera: con una base falsa no
+      # probarían nada de eso.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: bodegon
+          POSTGRES_PASSWORD: bodegon_dev_password
+          # La base de PRUEBAS, que es a la que apunta .env.test.
+          POSTGRES_DB: bodegon_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # --frozen-lockfile: si alguien tocó package.json sin actualizar el
+      # lockfile, esto falla en vez de resolver versiones distintas a las que
+      # se probaron en local.
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      # Los secretos de ejemplo bastan: no son producción y la validación de
+      # entorno solo bloquea el prefijo dev_only_ cuando NODE_ENV=production.
+      # DATABASE_URL lo pisa .env.test, que sí está versionado.
+      - name: Preparar entorno
+        run: cp .env.example .env
+
+      - name: Generar cliente de Prisma
+        run: pnpm --filter @bodegon/db generate
+
+      - name: Compilar paquetes compartidos
+        run: pnpm build:packages
+
+      - name: Migrar la base de pruebas
+        run: pnpm --filter @bodegon/db migrate:test
+
+      # Las pruebas leen datos reales del catálogo sembrado en vez de maquetas,
+      # así que sin esto fallarían por no encontrar productos.
+      - name: Sembrar la base de pruebas
+        run: pnpm --filter @bodegon/db seed:test
+
+      # ── De lo rápido a lo lento ──────────────────────────────────────────
+      - name: Formato
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Tipos
+        run: pnpm -r typecheck
+
+      - name: Pruebas
+        run: pnpm -r test
+
+  auditoria:
+    name: Dependencias vulnerables
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      # Va en un job aparte para que se vea de un vistazo si lo que falló fue
+      # el código o una dependencia. Son problemas distintos y se arreglan de
+      # forma distinta.
+      #
+      # Bloquea a partir de severidad alta. Las moderadas se revisan pero no
+      # frenan el trabajo: un umbral demasiado estricto acaba con la gente
+      # saltándose la comprobación, que es peor que no tenerla.
+      - name: pnpm audit
+        run: pnpm audit --audit-level high

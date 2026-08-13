@@ -1,0 +1,37 @@
+# Actualizaciones automáticas de dependencias.
+#
+# El Día 13 la auditoría encontró 6 vulnerabilidades altas, todas en paquetes
+# transitivos que nadie eligió y que llevaban meses ahí. Esto existe para que
+# la próxima vez el aviso llegue solo, en vez de esperar a que a alguien se le
+# ocurra correr `pnpm audit`.
+
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Un tope bajo a propósito: veinte pull requests abiertas se ignoran todas.
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Agrupadas por tema. Diez PRs sueltas de parches menores es ruido que
+      # nadie revisa; una sola con todos los parches de la semana sí se lee.
+      desarrollo:
+        dependency-type: development
+        update-types: [minor, patch]
+      produccion:
+        dependency-type: production
+        update-types: [patch]
+
+  # El propio CI también envejece: las acciones sin actualizar acaban usando
+  # versiones de Node que GitHub ya retiró.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(ci)"
