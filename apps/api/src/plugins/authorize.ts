@@ -27,7 +27,7 @@ const NIVEL: Record<UserRole, number> = {
   [UserRole.SUPER_ADMIN]: 20,
 };
 
-/** Exige un rol mínimo. Se usa como preHandler, después de requireAuth. */
+/** Exige un rol mínimo. Se usa como onRequest, después de requireAuth. */
 export function requireRole(minimo: UserRole) {
   return async function authorize(
     request: FastifyRequest,

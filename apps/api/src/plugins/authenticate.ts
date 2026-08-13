@@ -8,6 +8,25 @@
  * comprobación es CRIPTOGRÁFICA, no un `if`. Un token de cliente presentado en
  * una ruta de admin falla al verificarse la firma, antes de llegar a ninguna
  * lógica de permisos.
+ *
+ * SE ENGANCHA EN `onRequest`, NO EN `preHandler` (Día 13).
+ *
+ * El ciclo de vida de Fastify es:
+ *
+ *   onRequest → preParsing → preValidation → [validación] → preHandler → handler
+ *
+ * Con el guardia en `preHandler`, la validación del esquema corría ANTES de
+ * autenticar. Consecuencia medible: una petición sin sesión con el cuerpo mal
+ * formado recibía un 400 con el detalle de los campos, y una con el cuerpo
+ * correcto recibía un 401. Comparando ambas respuestas, cualquiera sin sesión
+ * podía deducir el esquema completo de la API de administración.
+ *
+ * No concedía acceso, pero regalaba reconocimiento — la fase previa de
+ * cualquier ataque dirigido.
+ *
+ * Aquí solo se leen cookies y cabeceras, disponibles ya en `onRequest`, así que
+ * el cuerpo no hace falta. Ventaja añadida: rechaza antes de gastar CPU en
+ * parsear cuerpos grandes de quien no tiene por qué estar ahí.
  */
 
 import type { User } from "@bodegon/db";

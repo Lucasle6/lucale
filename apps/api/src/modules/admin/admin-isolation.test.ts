@@ -369,3 +369,42 @@ describe("registro de auditoría", () => {
     }
   });
 });
+
+describe("el guardia corre antes que la validación", () => {
+  it("no revela el esquema del panel a quien no tiene sesión", async () => {
+    // REGRESIÓN del Día 13. Con el guardia en `preHandler`, la validación del
+    // cuerpo ocurría ANTES de autenticar: un cuerpo mal formado devolvía 400
+    // con el detalle de los campos, y uno correcto devolvía 401. Comparando
+    // ambas respuestas, cualquiera sin sesión deducía el esquema completo de
+    // la API de administración.
+    //
+    // No concedía acceso, pero regalaba reconocimiento gratis.
+    const cuerpoInvalido = await app.inject({
+      method: "POST",
+      url: "/v1/admin/products",
+      payload: { basura: 1 },
+    });
+
+    const cuerpoValido = await app.inject({
+      method: "POST",
+      url: "/v1/admin/products",
+      payload: {
+        name: "Salsa de prueba",
+        taxRateBps: 0,
+        variants: [{ size: "250 ml", sku: "SAL-ISO-1", priceCents: 18_000, stock: 5 }],
+      },
+    });
+
+    // Las dos igual: 401, sin pistas.
+    expect(cuerpoInvalido.statusCode).toBe(401);
+    expect(cuerpoValido.statusCode).toBe(401);
+
+    // Y sin rastro de los nombres de campo en la respuesta.
+    expect(cuerpoInvalido.body).not.toContain("taxRateBps");
+    expect(cuerpoInvalido.body).not.toContain("variants");
+    // Cada respuesta trae su propio requestId; se normalizan los DOS lados
+    // antes de comparar, o el test fallaría por un dato que sí debe diferir.
+    const sinRequestId = (cuerpo: string): string => cuerpo.replace(/req-\d+/, "REQ");
+    expect(sinRequestId(cuerpoInvalido.body)).toBe(sinRequestId(cuerpoValido.body));
+  });
+});

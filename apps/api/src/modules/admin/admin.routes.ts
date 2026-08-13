@@ -136,7 +136,7 @@ export function adminRoutes(app: FastifyInstance, mailer: Mailer): void {
       summary: "Cierra la sesión del panel",
       response: { 200: messageResponseSchema },
     },
-    preHandler: [auth, requireAdmin],
+    onRequest: [auth, requireAdmin],
     handler: adminController.logout,
   });
 
@@ -147,7 +147,7 @@ export function adminRoutes(app: FastifyInstance, mailer: Mailer): void {
       response: { 200: userProfileSchema },
     },
     // Las tres capas juntas: audiencia, rol y segundo factor.
-    preHandler: [auth, requireAdmin, requireTwoFactorEnabled],
+    onRequest: [auth, requireAdmin, requireTwoFactorEnabled],
     handler: adminController.me,
   });
 }

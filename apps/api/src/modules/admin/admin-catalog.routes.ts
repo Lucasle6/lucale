@@ -48,7 +48,7 @@ export function adminCatalogRoutes(app: FastifyInstance, storage: Storage): void
       querystring: adminProductListQuerySchema,
       response: { 200: adminProductListResponseSchema },
     },
-    preHandler: protegido,
+    onRequest: protegido,
     handler: controller.listProducts,
   });
 
@@ -59,7 +59,7 @@ export function adminCatalogRoutes(app: FastifyInstance, storage: Storage): void
       params: productParamsSchema,
       response: { 200: adminProductSchema },
     },
-    preHandler: protegido,
+    onRequest: protegido,
     handler: controller.getProduct,
   });
 
@@ -70,7 +70,7 @@ export function adminCatalogRoutes(app: FastifyInstance, storage: Storage): void
       body: createProductSchema,
       response: { 201: adminProductSchema },
     },
-    preHandler: protegido,
+    onRequest: protegido,
     handler: controller.createProduct,
   });
 
@@ -82,7 +82,7 @@ export function adminCatalogRoutes(app: FastifyInstance, storage: Storage): void
       body: updateProductSchema,
       response: { 200: adminProductSchema },
     },
-    preHandler: protegido,
+    onRequest: protegido,
     handler: controller.updateProduct,
   });
 
@@ -93,7 +93,7 @@ export function adminCatalogRoutes(app: FastifyInstance, storage: Storage): void
       params: productParamsSchema,
       response: { 200: messageResponseSchema },
     },
-    preHandler: protegido,
+    onRequest: protegido,
     handler: controller.archiveProduct,
   });
 
@@ -106,7 +106,7 @@ export function adminCatalogRoutes(app: FastifyInstance, storage: Storage): void
         201: z.object({ id: z.string(), name: z.string(), slug: z.string() }),
       },
     },
-    preHandler: protegido,
+    onRequest: protegido,
     handler: controller.createCategory,
   });
 
@@ -122,7 +122,7 @@ export function adminCatalogRoutes(app: FastifyInstance, storage: Storage): void
       response: { 201: imageResponseSchema },
       consumes: ["multipart/form-data"],
     },
-    preHandler: protegido,
+    onRequest: protegido,
     handler: controller.uploadImage(storage),
   });
 
@@ -133,7 +133,7 @@ export function adminCatalogRoutes(app: FastifyInstance, storage: Storage): void
       params: z.object({ id: z.uuid(), imageId: z.uuid() }),
       response: { 200: messageResponseSchema },
     },
-    preHandler: protegido,
+    onRequest: protegido,
     handler: controller.deleteImage(storage),
   });
 }

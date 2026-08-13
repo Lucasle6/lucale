@@ -130,7 +130,7 @@ export function authRoutes(app: FastifyInstance, mailer: Mailer): void {
       summary: "Cierra la sesión en todos los dispositivos",
       response: { 200: messageResponseSchema },
     },
-    preHandler: auth,
+    onRequest: auth,
     handler: authController.logoutAll,
   });
 
@@ -140,7 +140,7 @@ export function authRoutes(app: FastifyInstance, mailer: Mailer): void {
       summary: "Perfil del usuario autenticado",
       response: { 200: userProfileSchema },
     },
-    preHandler: auth,
+    onRequest: auth,
     handler: authController.me,
   });
 
@@ -175,7 +175,7 @@ export function authRoutes(app: FastifyInstance, mailer: Mailer): void {
       body: changePasswordSchema,
       response: { 200: messageResponseSchema },
     },
-    preHandler: auth,
+    onRequest: auth,
     handler: authController.changePassword,
   });
 
@@ -187,7 +187,7 @@ export function authRoutes(app: FastifyInstance, mailer: Mailer): void {
       summary: "Genera el QR para activar el segundo factor",
       response: { 200: twoFactorSetupResponseSchema },
     },
-    preHandler: auth,
+    onRequest: auth,
     handler: authController.setupTwoFactor,
   });
 
@@ -198,7 +198,7 @@ export function authRoutes(app: FastifyInstance, mailer: Mailer): void {
       body: confirmTwoFactorSchema,
       response: { 200: backupCodesResponseSchema },
     },
-    preHandler: auth,
+    onRequest: auth,
     config: { rateLimit: LIMITE_ESTRICTO },
     handler: authController.confirmTwoFactor,
   });
@@ -210,7 +210,7 @@ export function authRoutes(app: FastifyInstance, mailer: Mailer): void {
       body: passwordConfirmationSchema,
       response: { 200: messageResponseSchema },
     },
-    preHandler: auth,
+    onRequest: auth,
     config: { rateLimit: LIMITE_ESTRICTO },
     handler: authController.disableTwoFactor,
   });
@@ -222,7 +222,7 @@ export function authRoutes(app: FastifyInstance, mailer: Mailer): void {
       body: passwordConfirmationSchema,
       response: { 200: backupCodesResponseSchema },
     },
-    preHandler: auth,
+    onRequest: auth,
     config: { rateLimit: LIMITE_ESTRICTO },
     handler: authController.regenerateBackupCodes,
   });
