@@ -134,6 +134,7 @@ export interface FaltanteDeStock {
 export async function confirmarPago(
   orden: OrdenParaConfirmar,
   paymentIntentId: string | null,
+  cartId: string | null,
 ): Promise<{ aplicado: boolean; faltantes: FaltanteDeStock[] }> {
   return prisma.$transaction(async (tx) => {
     const actualizados = await tx.order.updateMany({
@@ -171,9 +172,17 @@ export async function confirmarPago(
       }
     }
 
-    // El carrito se vacía AQUÍ, no al ir a pagar: quien abandonó la pantalla de
-    // Stripe conserva lo que había elegido.
-    if (orden.userId !== null) {
+    // El carrito se vacía AQUÍ, no al ir a pagar: quien abandonó la pantalla
+    // de Stripe conserva lo que había elegido.
+    //
+    // Se vacía por `cartId`, que viaja en los metadatos de la sesión, y NO por
+    // userId. Comprobar el usuario dejaría intacto el carrito de quien compra
+    // sin cuenta — es decir, de la mayoría— y ese carrito lleno después de
+    // pagar invita a pagar dos veces lo mismo.
+    if (cartId !== null) {
+      await tx.cartItem.deleteMany({ where: { cartId } });
+    } else if (orden.userId !== null) {
+      // Respaldo para pedidos anteriores a que se anotara el carrito.
       await tx.cartItem.deleteMany({ where: { cart: { userId: orden.userId } } });
     }
 

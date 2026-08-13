@@ -25,7 +25,7 @@ import { AppError, ConflictError, NotFoundError } from "../../lib/errors.js";
 import { stripe } from "../../lib/stripe.js";
 import type { Stripe } from "../../lib/stripe.js";
 import type { CartOwner } from "../cart/cart.service.js";
-import { assertPurchasable } from "../cart/cart.service.js";
+import { assertPurchasable, getCartId } from "../cart/cart.service.js";
 import * as repo from "./checkout.repository.js";
 
 /**
@@ -70,6 +70,12 @@ export async function createCheckoutSession(
   // ── 1. El carrito, revalidado ──────────────────────────────────────────────
   // Comprueba que no esté vacío y que ninguna línea se pase del inventario.
   const carrito = await assertPurchasable(owner);
+
+  // Se anota QUÉ carrito se está pagando para que el webhook pueda vaciarlo
+  // al confirmar. Con cuenta bastaría el userId, pero la mayoría compra sin
+  // ella, y un carrito que sigue lleno después de pagar invita a pagar dos
+  // veces lo mismo.
+  const cartId = await getCartId(owner);
 
   // ── 2. Los precios, releídos del catálogo ──────────────────────────────────
   // Esta es la lectura que manda. El carrito ya traía precios, pero los leyó
@@ -213,7 +219,13 @@ export async function createCheckoutSession(
          * disputas llegan asociados al PaymentIntent, no a la sesión.
          */
         client_reference_id: orden.id,
-        metadata: { orderId: orden.id, orderNumber: orden.orderNumber },
+        metadata: {
+          orderId: orden.id,
+          orderNumber: orden.orderNumber,
+          // Un uuid, no un token de sesión: identifica el carrito sin ser una
+          // credencial que valga la pena filtrar a un tercero.
+          ...(cartId === null ? {} : { cartId }),
+        },
         payment_intent_data: {
           metadata: { orderId: orden.id, orderNumber: orden.orderNumber },
         },

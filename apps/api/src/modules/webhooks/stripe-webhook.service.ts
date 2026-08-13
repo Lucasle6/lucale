@@ -155,7 +155,12 @@ async function confirmarPago(
       ? sesion.payment_intent
       : (sesion.payment_intent?.id ?? null);
 
-  const { aplicado, faltantes } = await repo.confirmarPago(orden, paymentIntentId);
+  const cartId = sesion.metadata?.cartId ?? null;
+  const { aplicado, faltantes } = await repo.confirmarPago(
+    orden,
+    paymentIntentId,
+    cartId,
+  );
 
   if (!aplicado) {
     // El pedido ya no estaba PENDING. Puede ser un duplicado que se coló por

@@ -223,6 +223,18 @@ export async function mergeGuestCart(
   await repo.mergeCarts(invitado.id, delUsuario.id);
 }
 
+/**
+ * Id del carrito de quien compra, o null si no tiene.
+ *
+ * Lo necesita el checkout para dejarlo anotado en la sesión de Stripe: cuando
+ * el pago se confirme, el webhook tiene que saber QUÉ carrito vaciar. Con
+ * usuarios registrados bastaría el userId, pero la mayoría compra sin cuenta.
+ */
+export async function getCartId(owner: CartOwner): Promise<string | null> {
+  const carrito = await buscarCarrito(owner);
+  return carrito?.id ?? null;
+}
+
 /** Valida el carrito antes de cobrar. Se usará en el checkout (Día 11). */
 export async function assertPurchasable(owner: CartOwner): Promise<Cart> {
   const carrito = await getCart(owner);

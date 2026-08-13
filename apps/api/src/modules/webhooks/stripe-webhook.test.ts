@@ -119,6 +119,7 @@ function cuerpoDeEvento(opciones: {
   type: string;
   orderId: string;
   amountTotal: number;
+  cartId?: string;
 }): string {
   return JSON.stringify({
     id: opciones.eventId,
@@ -130,7 +131,11 @@ function cuerpoDeEvento(opciones: {
         object: "checkout.session",
         amount_total: opciones.amountTotal,
         payment_intent: `pi_test_${opciones.eventId}`,
-        metadata: { orderId: opciones.orderId, orderNumber: "LCL-TEST" },
+        metadata: {
+          orderId: opciones.orderId,
+          orderNumber: "LCL-TEST",
+          ...(opciones.cartId === undefined ? {} : { cartId: opciones.cartId }),
+        },
       },
     },
   });
@@ -351,6 +356,62 @@ describe("el mismo evento entregado varias veces", () => {
       where: { id: variantId },
     });
     expect(variante.stock).toBe(STOCK_INICIAL - 2);
+  });
+});
+
+describe("el carrito después de pagar", () => {
+  it("vacía el carrito de quien compró SIN cuenta", async () => {
+    // La mayoría compra sin registrarse. Si el carrito siguiera lleno tras
+    // pagar, el botón "Pagar" seguiría ahí y podría cobrarse dos veces lo
+    // mismo sin que el cliente se diera cuenta.
+    const carrito = await prisma.cart.create({
+      data: {
+        sessionToken: `prueba-webhook-${String(Date.now())}`,
+        expiresAt: new Date(Date.now() + 86_400_000),
+        items: { create: [{ variantId, quantity: 2 }] },
+      },
+      select: { id: true },
+    });
+
+    const orden = await pedidoPendiente(2);
+    const cuerpo = cuerpoDeEvento({
+      eventId: `evt_carrito_${String(Date.now())}`,
+      type: "checkout.session.completed",
+      orderId: orden.id,
+      amountTotal: orden.totalCents,
+      cartId: carrito.id,
+    });
+
+    await entregar(cuerpo);
+
+    const lineas = await prisma.cartItem.count({ where: { cartId: carrito.id } });
+    expect(lineas).toBe(0);
+  });
+
+  it("no toca el carrito si el pago no se confirma", async () => {
+    const carrito = await prisma.cart.create({
+      data: {
+        sessionToken: `prueba-webhook-intacto-${String(Date.now())}`,
+        expiresAt: new Date(Date.now() + 86_400_000),
+        items: { create: [{ variantId, quantity: 1 }] },
+      },
+      select: { id: true },
+    });
+
+    const orden = await pedidoPendiente();
+    const cuerpo = cuerpoDeEvento({
+      eventId: `evt_carrito_malo_${String(Date.now())}`,
+      type: "checkout.session.completed",
+      orderId: orden.id,
+      amountTotal: 1, // importe que no cuadra
+      cartId: carrito.id,
+    });
+
+    await entregar(cuerpo);
+
+    // Ni pedido pagado, ni carrito vaciado.
+    const lineas = await prisma.cartItem.count({ where: { cartId: carrito.id } });
+    expect(lineas).toBe(1);
   });
 });
 
