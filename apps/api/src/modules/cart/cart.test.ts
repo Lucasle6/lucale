@@ -15,6 +15,12 @@ let app: FastifyInstance;
 /** Variante real del catálogo sembrado, para no inventar datos. */
 let variante: { id: string; priceCents: number; stock: number };
 
+/**
+ * Instante en que arrancó este archivo de pruebas. Delimita qué carritos son
+ * nuestros y cuáles no: ver la explicación en `afterAll`.
+ */
+const inicioDeLaEjecucion = new Date();
+
 beforeAll(async () => {
   app = await buildApp();
   await app.ready();
@@ -27,7 +33,31 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await app.close();
-  await prisma.cart.deleteMany({ where: { sessionToken: { not: null } } });
+
+  /**
+   * Se borran SOLO los carritos que creó esta ejecución.
+   *
+   * Antes decía `{ sessionToken: { not: null } }`, que no significa "los míos"
+   * sino "TODOS los carritos de invitado que existan en la base". Como los
+   * tests corren contra la misma base que el desarrollo, cada `pnpm test`
+   * borraba el carrito que tuvieras abierto en el navegador. Costó un rato
+   * entenderlo: la tienda decía "tu carrito está vacío" justo después de
+   * añadir algo, y la culpa no estaba en el carrito sino aquí.
+   *
+   * El resto de archivos ya lo hacían bien, acotando por sufijo de correo o
+   * prefijo de slug. Este era la excepción.
+   *
+   * Se acota por fecha porque el token lo genera el servidor y la prueba no
+   * puede marcarlo al crearlo.
+   *
+   * La solución de fondo es una base de datos aparte para los tests, y va en
+   * el Día 14 con la integración continua: mientras compartan base, cualquier
+   * limpieza mal acotada puede pisar datos de desarrollo.
+   */
+  await prisma.cart.deleteMany({
+    where: { createdAt: { gte: inicioDeLaEjecucion } },
+  });
+
   await prisma.$disconnect();
 });
 
