@@ -98,6 +98,21 @@ const EnvSchema = z
         "debe empezar por sk_test_ o sk_live_ (si empieza por pk_ es la clave publicable, que no sirve aquí)",
       ),
 
+    // Secreto de firma del webhook de Stripe.
+    //
+    // Es DISTINTO de la clave secreta y cumple otra función: la sk_ sirve para
+    // que nosotros llamemos a Stripe; esta sirve para comprobar que quien nos
+    // llama a nosotros es Stripe de verdad.
+    //
+    // Sin ella, el endpoint del webhook —que es público por necesidad— acepta
+    // que cualquiera anuncie "el pedido X está pagado".
+    //
+    // Se obtiene con `stripe listen` en local, o en el panel al registrar el
+    // endpoint de producción. Cada endpoint tiene la suya.
+    STRIPE_WEBHOOK_SECRET: z
+      .string()
+      .regex(/^whsec_/, "debe empezar por whsec_ (la da `stripe listen` o el panel)"),
+
     // Orígenes permitidos por CORS. Se configuran en el Día 3, pero se validan desde
     // hoy: una allowlist explícita es más segura que un `origin: true` que acepta todo.
     WEB_ORIGIN: z.url(),
