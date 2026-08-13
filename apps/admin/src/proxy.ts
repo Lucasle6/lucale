@@ -40,10 +40,27 @@ export function proxy(request: NextRequest): NextResponse {
   const enDesarrollo = process.env.NODE_ENV === "development";
   const api = origenDeLaApi();
 
+  /**
+   * Los estilos SÍ permiten 'unsafe-inline', y es una decisión, no un descuido.
+   *
+   * Se intentó primero con nonce estricto. Una comprobación visual pareció
+   * bastar —la página se veía bien porque Tailwind sirve un CSS externo—, pero
+   * las pruebas E2E destaparon una docena de violaciones por carga: Next y
+   * React inyectan estilos en línea propios que no llevan el nonce.
+   *
+   * Mantener una política que registra doce violaciones en cada visita es peor
+   * que aflojarla: acostumbra a ignorar los informes de CSP, y el día que
+   * aparezca una violación de verdad, nadie la va a mirar.
+   *
+   * El riesgo que se acepta es acotado. Una inyección de CSS puede desfigurar
+   * la página o, rebuscando mucho, filtrar datos con selectores de atributo.
+   * Una inyección de SCRIPT se lleva la sesión entera — y ahí seguimos con
+   * nonce y sin unsafe-inline, que es donde importa.
+   */
   const csp = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${enDesarrollo ? " 'unsafe-eval'" : ""};
-    style-src 'self' 'nonce-${nonce}';
+    style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: ${api};
     font-src 'self';
     connect-src 'self' ${api}${enDesarrollo ? " ws: wss:" : ""};
@@ -69,13 +86,6 @@ export function proxy(request: NextRequest): NextResponse {
 
 export const config = {
   matcher: [
-    /**
-     * Se excluyen los recursos estáticos y las precargas de `next/link`.
-     *
-     * No es solo por rendimiento: generar un nonce distinto por cada archivo
-     * estático obligaría a renderizar dinámicamente cosas que deberían servirse
-     * de caché, y tiraría por tierra media optimización de la tienda.
-     */
     {
       source: "/((?!api|_next/static|_next/image|favicon.ico).*)",
       missing: [

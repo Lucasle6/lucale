@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // DOM además de Node: el código que va dentro de `page.evaluate` y
+    // `page.waitForFunction` se ejecuta en el NAVEGADOR, no aquí, así que
+    // necesita conocer `document` y compañía.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  },
+  "include": ["**/*.ts"]
+}

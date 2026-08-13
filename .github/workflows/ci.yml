@@ -124,3 +124,71 @@ jobs:
       # saltándose la comprobación, que es peor que no tenerla.
       - name: pnpm audit
         run: pnpm audit --audit-level high
+
+  e2e:
+    name: Recorrido de compra en navegador
+    runs-on: ubuntu-latest
+    # Solo si lo demás pasa: levantar dos servidores y un navegador es lo más
+    # caro de todo el pipeline, y no tiene sentido pagarlo si el lint ya falló.
+    needs: verificar
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: bodegon
+          POSTGRES_PASSWORD: bodegon_dev_password
+          POSTGRES_DB: bodegon_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Instalar dependencias
+        run: pnpm install --frozen-lockfile
+
+      - name: Preparar entorno
+        run: cp .env.example .env
+
+      - name: Generar cliente de Prisma
+        run: pnpm --filter @bodegon/db generate
+
+      - name: Compilar paquetes compartidos
+        run: pnpm build:packages
+
+      - name: Migrar y sembrar la base de pruebas
+        run: |
+          pnpm --filter @bodegon/db migrate:test
+          pnpm --filter @bodegon/db seed:test
+
+      # Solo Chromium: tres navegadores triplican el tiempo y estas pruebas
+      # buscan fallos de integración, no diferencias entre motores.
+      - name: Instalar el navegador
+        run: pnpm --filter @bodegon/e2e install:browsers
+
+      - name: Recorrido de compra
+        run: pnpm --filter @bodegon/e2e test
+
+      # El informe solo se guarda si algo falló: con todo en verde nadie lo abre.
+      - name: Guardar el informe si falla
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/e2e/playwright-report/
+          retention-days: 7

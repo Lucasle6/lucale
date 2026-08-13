@@ -15,7 +15,7 @@ export default {
     "scope-enum": [
       2,
       "always",
-      ["api", "web", "admin", "db", "shared", "ui", "infra", "docs", "deps"],
+      ["api", "web", "admin", "e2e", "db", "shared", "ui", "infra", "docs", "deps"],
     ],
     // El plan y los docs están en español; los mensajes también.
     "subject-case": [0],
