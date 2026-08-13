@@ -207,6 +207,42 @@ vivo**, no tras leer el código.
 
 ---
 
+## Hallazgos pendientes de corregir
+
+### El guardia de autenticación corre DESPUÉS de la validación · detectado el Día 11
+
+**Qué pasa.** Las rutas protegidas enganchan `requireAuth` en el hook `preHandler`, y en
+el ciclo de vida de Fastify la validación del esquema ocurre antes:
+
+```
+onRequest → preParsing → preValidation → [validación] → preHandler → handler
+                                              ↑              ↑
+                                         valida aquí    autentica aquí
+```
+
+**Comprobado en vivo** contra `POST /v1/admin/products` sin sesión:
+
+| Cuerpo enviado | Respuesta                     | Qué revela                       |
+| -------------- | ----------------------------- | -------------------------------- |
+| inválido       | **400** con detalle de campos | el esquema completo del endpoint |
+| válido         | **401**                       | nada                             |
+
+**Por qué importa.** No concede acceso, pero regala reconocimiento: alguien sin sesión
+puede confirmar qué endpoints de administración existen y deducir sus campos y
+restricciones probando cuerpos y leyendo los errores de validación. Es la fase previa de
+cualquier ataque dirigido.
+
+**Cómo se corrige.** Mover el guardia de `preHandler` a `onRequest`. La autenticación
+solo lee cookies y cabeceras, que ya están disponibles ahí, así que no necesita el cuerpo
+parseado. Ventaja añadida: rechaza antes de gastar CPU en parsear cuerpos grandes.
+
+**Al hacerlo, verificar** que `request.cookies` sigue poblado en `onRequest` — depende de
+que el hook de `@fastify/cookie` se registre antes que el de la ruta. Es justo el tipo de
+suposición que ya nos falló una vez con los hooks de Fastify, así que se comprueba con una
+petición real, no leyendo el código.
+
+---
+
 ## Lo que este proyecto _no_ cubre
 
 Honestidad de alcance — decirlo tú antes de que te lo pregunten vale más que omitirlo:
