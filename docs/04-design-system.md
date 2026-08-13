@@ -12,7 +12,7 @@ ilegible; dos colores se oscurecieron respecto al primer borrador por ese motivo
 ## Principio rector
 
 El color no es la marca aquí — **el espacio en blanco lo es**. La paleta se mantiene
-apagada a propósito para que el producto (una impresión 3D, una fotografía) sea lo único
+apagada a propósito para que el producto (un frasco de salsa, una fotografía) sea lo único
 saturado en pantalla. El acento terracota aparece poco, y por eso pesa.
 
 Tres reglas que se aplican sin excepción:
@@ -45,7 +45,7 @@ Tres reglas que se aplican sin excepción:
 
 ## Marca — terracota / arcilla
 
-Un tono de barro cocido. Encaja con impresión 3D sin ser literal, y envejece mejor que
+Un tono de barro cocido. Encaja con cocina mexicana sin ser literal, y envejece mejor que
 cualquier acento de moda.
 
 | Token         | Hex       | Uso                                        |

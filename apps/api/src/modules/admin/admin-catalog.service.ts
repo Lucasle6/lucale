@@ -305,7 +305,7 @@ async function verificarCategoria(id: string): Promise<void> {
   }
 }
 
-/** Busca un slug libre añadiendo sufijos: maceta, maceta-2, maceta-3... */
+/** Busca un slug libre añadiendo sufijos: salsa-macha, salsa-macha-2, ... */
 async function slugDisponible(base: string): Promise<string> {
   if (base.length < 3) {
     throw new ValidationError("El nombre es demasiado corto para generar una URL");

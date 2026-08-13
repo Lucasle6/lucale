@@ -180,7 +180,7 @@ export async function createCheckoutSession(
             unit_amount: linea.unitPriceCents,
             product_data: {
               name: linea.productNameSnapshot,
-              description: `Tamaño ${linea.sizeSnapshot}`,
+              description: `Presentación ${linea.sizeSnapshot}`,
               metadata: { sku: linea.skuSnapshot },
             },
           },

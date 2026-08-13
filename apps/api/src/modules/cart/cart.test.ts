@@ -26,7 +26,7 @@ beforeAll(async () => {
   await app.ready();
 
   variante = await prisma.productVariant.findFirstOrThrow({
-    where: { sku: "MAC-HEX-S" },
+    where: { sku: "SAL-MAC-CAC-250" },
     select: { id: true, priceCents: true, stock: true },
   });
 });

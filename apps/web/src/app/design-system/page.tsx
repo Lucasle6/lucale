@@ -95,14 +95,14 @@ export default function DesignSystemPage(): ReactElement {
           <div className="flex flex-col gap-4">
             <div>
               <p className="mb-1 text-xs text-ink-500">Fraunces · títulos</p>
-              <h2 className="text-3xl text-ink-900">Maceta Hexagonal</h2>
+              <h2 className="text-3xl text-ink-900">Salsa Macha de Cacahuate</h2>
             </div>
             <div>
               <p className="mb-1 text-xs text-ink-500">Inter · cuerpo</p>
               <p className="max-w-prose text-ink-700">
-                Maceta geométrica de líneas limpias, ideal para suculentas. Impresa en PLA
-                mate con acabado texturizado. La longitud de línea se limita a unos 68
-                caracteres, que es el máximo cómodo de lectura.
+                Chile morita y guajillo tostados a fuego lento, con cacahuate y ajo en
+                aceite de oliva. La longitud de línea se limita a unos 68 caracteres, que
+                es el máximo cómodo de lectura.
               </p>
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function DesignSystemPage(): ReactElement {
             <Button variant="ghost">Cancelar</Button>
             <Button variant="danger">Eliminar</Button>
           </Fila>
-          <Fila etiqueta="Tamaños">
+          <Fila etiqueta="Tamaños de control">
             <Button size="sm">Pequeño</Button>
             <Button size="md">Mediano</Button>
             <Button size="lg">Grande</Button>
@@ -146,9 +146,9 @@ export default function DesignSystemPage(): ReactElement {
               defaultValue="0000"
               error="Debe tener 5 dígitos"
             />
-            <Select label="Tamaño" defaultValue="">
+            <Select label="Presentación" defaultValue="">
               <option value="" disabled>
-                Elige un tamaño
+                Elige una presentación
               </option>
               <option value="s">Pequeña — $149.90</option>
               <option value="m">Mediana — $219.90</option>
@@ -170,7 +170,7 @@ export default function DesignSystemPage(): ReactElement {
           <Badge>Borrador</Badge>
           <Badge tone="brand">Nuevo</Badge>
           <Badge tone="success">En stock</Badge>
-          <Badge tone="warning">Pocas piezas</Badge>
+          <Badge tone="warning">Pocas unidades</Badge>
           <Badge tone="danger">Agotado</Badge>
         </div>
       </Seccion>
@@ -200,7 +200,7 @@ export default function DesignSystemPage(): ReactElement {
         <Card className="p-0">
           <EmptyState
             title="Tu carrito está vacío"
-            description="Cuando agregues piezas aparecerán aquí. Empieza por el catálogo."
+            description="Cuando agregues productos aparecerán aquí. Empieza por el catálogo."
             action={<Button>Ver catálogo</Button>}
             icon={
               <svg

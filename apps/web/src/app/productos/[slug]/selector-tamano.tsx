@@ -64,7 +64,7 @@ export function SelectorTamano({
     <div className="flex flex-col gap-5">
       {variantes.length > 1 ? (
         <fieldset>
-          <legend className="mb-2 text-sm font-medium text-ink-700">Tamaño</legend>
+          <legend className="mb-2 text-sm font-medium text-ink-700">Presentación</legend>
           <div className="flex flex-wrap gap-2">
             {variantes.map((variante) => (
               <label

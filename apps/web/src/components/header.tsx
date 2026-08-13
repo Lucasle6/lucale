@@ -21,7 +21,7 @@ export async function Header(): Promise<ReactElement> {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
         <Link href="/" className="flex flex-col leading-tight">
           <span className="text-xs tracking-widest text-brand-600 uppercase">
-            Impresión 3D
+            Cocina mexicana
           </span>
           <span className="font-display text-xl text-ink-900">LuCaLe</span>
         </Link>
@@ -57,7 +57,7 @@ export async function Header(): Promise<ReactElement> {
             <span className="sr-only">
               Ver carrito
               {carrito.itemCount > 0
-                ? `, ${String(carrito.itemCount)} ${carrito.itemCount === 1 ? "pieza" : "piezas"}`
+                ? `, ${String(carrito.itemCount)} ${carrito.itemCount === 1 ? "producto" : "productos"}`
                 : " (vacío)"}
             </span>
           </Link>

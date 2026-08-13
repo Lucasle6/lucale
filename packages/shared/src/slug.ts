@@ -7,7 +7,7 @@
  */
 
 /**
- * Convierte un texto en slug: "Maceta Hexagonal" → "maceta-hexagonal".
+ * Convierte un texto en slug: "Salsa Macha de Cacahuate" → "salsa-macha-cacahuate".
  *
  * El paso clave es `normalize("NFD")`, que descompone los caracteres
  * acentuados en letra + tilde ("á" → "a" + "´"). Luego se borran las tildes
@@ -33,7 +33,7 @@ export function slugify(text: string): string {
 }
 
 /**
- * Añade un sufijo numérico para desempatar: "maceta" → "maceta-2".
+ * Añade un sufijo numérico para desempatar: "salsa-macha" → "salsa-macha-2".
  *
  * Se usa cuando el slug generado ya existe. Se corta el nombre base si hace
  * falta para no pasarse del límite de la columna.

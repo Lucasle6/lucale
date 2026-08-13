@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     template: "%s · LuCaLe",
   },
   description:
-    "Piezas de impresión 3D para decorar, ordenar y resolver. Hechas con calma.",
+    "Salsas, aceites infusionados y despensa, hechos en tandas pequeñas. Cocina mexicana de todos los días.",
 };
 
 export default function RootLayout({

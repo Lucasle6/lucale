@@ -67,7 +67,7 @@ export default async function CheckoutExitoPage({
 
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link href="/productos">
-              <Button>Seguir viendo piezas</Button>
+              <Button>Seguir comprando</Button>
             </Link>
             <Link href="/">
               <Button variant="secondary">Ir al inicio</Button>

@@ -42,7 +42,7 @@ export default async function CarritoPage(): Promise<ReactElement> {
           <Card className="p-0">
             <EmptyState
               title="Tu carrito está vacío"
-              description="Cuando agregues piezas aparecerán aquí. Empieza por el catálogo."
+              description="Cuando agregues productos aparecerán aquí. Empieza por el catálogo."
               action={
                 <Link href="/productos">
                   <Button>Ver catálogo</Button>
@@ -62,7 +62,7 @@ export default async function CarritoPage(): Promise<ReactElement> {
                   <div className="flex justify-between">
                     <dt className="text-ink-700">
                       Subtotal ({carrito.itemCount}{" "}
-                      {carrito.itemCount === 1 ? "pieza" : "piezas"})
+                      {carrito.itemCount === 1 ? "producto" : "productos"})
                     </dt>
                     <dd className="text-ink-900">{carrito.subtotalFormatted}</dd>
                   </div>
@@ -95,7 +95,7 @@ export default async function CarritoPage(): Promise<ReactElement> {
 
                 {carrito.hasIssues ? (
                   <p role="alert" className="mt-4 text-sm text-danger">
-                    Algunas piezas superan el stock disponible. Ajusta las cantidades
+                    Algunos productos superan el stock disponible. Ajusta las cantidades
                     antes de continuar.
                   </p>
                 ) : null}

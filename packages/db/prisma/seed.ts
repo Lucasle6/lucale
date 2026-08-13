@@ -1,10 +1,14 @@
 /**
  * Datos de ejemplo para desarrollo.
  *
- * Siembra un catálogo de impresiones 3D con categorías en árbol, productos y
- * variantes. Sirve para trabajar contra datos realistas desde el primer día de
- * frontend y para que quien clone el repo tenga una tienda funcional con un
- * solo comando.
+ * Siembra un catálogo de salsas, aceites infusionados y utensilios de cocina,
+ * con categorías en árbol, productos y variantes. Sirve para trabajar contra
+ * datos realistas y para que quien clone el repo tenga una tienda funcional con
+ * un solo comando.
+ *
+ * El catálogo mezcla los dos regímenes fiscales a propósito: los alimentos
+ * llevan tasa 0% y los utensilios 16%. Sin esa mezcla, el cálculo de IVA por
+ * línea nunca se ejercitaría en desarrollo y un error ahí pasaría inadvertido.
  *
  * Es idempotente: borra antes de sembrar, así que se puede correr las veces
  * que haga falta.
@@ -12,10 +16,19 @@
  *   pnpm --filter @bodegon/db seed
  */
 
-import { toCents } from "@bodegon/shared";
+import { TAX_RATE_STANDARD_BPS, TAX_RATE_ZERO_BPS, toCents } from "@bodegon/shared";
 import { PrismaClient, ProductStatus } from "../generated/prisma/index.js";
 
 const prisma = new PrismaClient();
+
+/**
+ * Alias con nombre de negocio, no de impuesto.
+ *
+ * Quien da de alta un producto no se pregunta "¿1600 o 0?", se pregunta "¿esto
+ * se come?". El código debería preguntar lo mismo.
+ */
+const SE_COME = TAX_RATE_ZERO_BPS; // art. 2-A de la Ley del IVA
+const NO_SE_COME = TAX_RATE_STANDARD_BPS;
 
 /** Borra el catálogo existente respetando el orden de las llaves foráneas. */
 async function limpiar(): Promise<void> {
@@ -38,171 +51,232 @@ async function main(): Promise<void> {
   // ── Categorías (árbol de dos niveles) ──────────────────────────────────────
   console.warn("Creando categorías...");
 
-  const decoracion = await prisma.category.create({
-    data: { name: "Decoración", slug: "decoracion", position: 1 },
+  const salsas = await prisma.category.create({
+    data: { name: "Salsas", slug: "salsas", position: 1 },
   });
-  const escritorio = await prisma.category.create({
-    data: { name: "Escritorio", slug: "escritorio", position: 2 },
+  const aceites = await prisma.category.create({
+    data: { name: "Aceites", slug: "aceites", position: 2 },
   });
-  const utilidad = await prisma.category.create({
-    data: { name: "Utilidad", slug: "utilidad", position: 3 },
+  const despensa = await prisma.category.create({
+    data: { name: "Despensa", slug: "despensa", position: 3 },
+  });
+  const utensilios = await prisma.category.create({
+    data: { name: "Utensilios", slug: "utensilios", position: 4 },
   });
 
-  const macetas = await prisma.category.create({
-    data: { name: "Macetas", slug: "macetas", position: 1, parentId: decoracion.id },
+  const machas = await prisma.category.create({
+    data: { name: "Machas", slug: "machas", position: 1, parentId: salsas.id },
   });
-  const figuras = await prisma.category.create({
-    data: { name: "Figuras", slug: "figuras", position: 2, parentId: decoracion.id },
+  const picantes = await prisma.category.create({
+    data: { name: "Picantes", slug: "picantes", position: 2, parentId: salsas.id },
   });
-  const organizadores = await prisma.category.create({
+  const salesEspecias = await prisma.category.create({
     data: {
-      name: "Organizadores",
-      slug: "organizadores",
+      name: "Sales y especias",
+      slug: "sales-y-especias",
       position: 1,
-      parentId: escritorio.id,
+      parentId: despensa.id,
     },
+  });
+  const mieles = await prisma.category.create({
+    data: { name: "Mieles", slug: "mieles", position: 2, parentId: despensa.id },
   });
 
   // ── Productos ──────────────────────────────────────────────────────────────
   // Los precios se escriben legibles y toCents los pasa a centavos enteros.
+  //
+  // Los pesos son de producto envasado, con el frasco incluido: un tarro de
+  // vidrio de 250 ml pesa cerca de medio kilo lleno. De ahí sale el cálculo de
+  // envío, y por eso no se pueden inventar a la ligera.
   console.warn("Creando productos y variantes...");
 
   const productos = [
+    // ── Salsas macha ─────────────────────────────────────────────────────────
     {
-      name: "Maceta Hexagonal",
-      slug: "maceta-hexagonal",
+      name: "Salsa Macha de Cacahuate",
+      slug: "salsa-macha-cacahuate",
       description:
-        "Maceta geométrica de líneas limpias, ideal para suculentas. Impresa en PLA mate con acabado texturizado.",
-      categoryId: macetas.id,
+        "Chile morita y guajillo tostados a fuego lento, con cacahuate y ajo en aceite de oliva. Picor medio, textura crujiente.",
+      categoryId: machas.id,
+      taxRateBps: SE_COME,
       status: ProductStatus.ACTIVE,
       variants: [
-        { size: "Pequeña", sku: "MAC-HEX-S", price: 149.9, stock: 24, weight: 85 },
-        { size: "Mediana", sku: "MAC-HEX-M", price: 219.9, stock: 18, weight: 140 },
-        { size: "Grande", sku: "MAC-HEX-L", price: 319.9, stock: 9, weight: 230 },
+        { size: "250 ml", sku: "SAL-MAC-CAC-250", price: 180, stock: 40, weight: 450 },
+        { size: "500 ml", sku: "SAL-MAC-CAC-500", price: 320, stock: 22, weight: 800 },
+        // Formato de restaurante. Tres presentaciones con tres precios es lo
+        // que la prueba del catálogo usa para comprobar que el modelo de
+        // variantes llega intacto hasta la respuesta HTTP.
+        { size: "1 L", sku: "SAL-MAC-CAC-1L", price: 580, stock: 8, weight: 1500 },
       ],
     },
     {
-      name: "Maceta Ondulada",
-      slug: "maceta-ondulada",
+      name: "Salsa Macha de Ajonjolí",
+      slug: "salsa-macha-ajonjoli",
       description:
-        "Superficie ondulada que juega con la luz. Incluye plato de drenaje integrado.",
-      categoryId: macetas.id,
+        "La misma base de chiles tostados, con ajonjolí en lugar de cacahuate. Apta para quien evita los frutos secos.",
+      categoryId: machas.id,
+      taxRateBps: SE_COME,
       status: ProductStatus.ACTIVE,
       variants: [
-        { size: "Pequeña", sku: "MAC-OND-S", price: 169.9, stock: 15, weight: 95 },
-        { size: "Grande", sku: "MAC-OND-L", price: 349.9, stock: 7, weight: 250 },
+        { size: "250 ml", sku: "SAL-MAC-AJO-250", price: 185, stock: 30, weight: 450 },
       ],
     },
+
+    // ── Salsas picantes ──────────────────────────────────────────────────────
     {
-      name: "Macetero Colgante",
-      slug: "macetero-colgante",
+      name: "Salsa de Habanero Tatemado",
+      slug: "salsa-habanero-tatemado",
       description:
-        "Diseño suspendido con cuerda de algodón natural. Para plantas de sombra.",
-      categoryId: macetas.id,
+        "Habanero yucateco tatemado en comal, con cebolla morada y jugo de naranja agria. Pica de verdad.",
+      categoryId: picantes.id,
+      taxRateBps: SE_COME,
       status: ProductStatus.ACTIVE,
       variants: [
-        { size: "Mediana", sku: "MAC-COL-M", price: 279.9, stock: 12, weight: 165 },
+        { size: "200 ml", sku: "SAL-HAB-200", price: 95, stock: 45, weight: 380 },
+        { size: "400 ml", sku: "SAL-HAB-400", price: 165, stock: 25, weight: 690 },
       ],
     },
     {
-      name: "Lámpara Luna",
-      slug: "lampara-luna",
+      name: "Salsa de Chile Morita",
+      slug: "salsa-chile-morita",
       description:
-        "Réplica topográfica de la superficie lunar con luz cálida regulable. Base de madera incluida.",
-      categoryId: decoracion.id,
+        "Ahumada y espesa, de picor amable. La de diario, para huevos y tacos de canasta.",
+      categoryId: picantes.id,
+      taxRateBps: SE_COME,
       status: ProductStatus.ACTIVE,
       variants: [
-        { size: "12 cm", sku: "LAM-LUN-12", price: 449.9, stock: 11, weight: 320 },
-        { size: "18 cm", sku: "LAM-LUN-18", price: 689.9, stock: 5, weight: 540 },
+        { size: "200 ml", sku: "SAL-MOR-200", price: 95, stock: 38, weight: 380 },
       ],
     },
     {
-      name: "Figura Origami Zorro",
-      slug: "figura-origami-zorro",
-      description: "Escultura de facetas inspirada en el papiroflexia. Acabado satinado.",
-      categoryId: figuras.id,
-      status: ProductStatus.ACTIVE,
-      variants: [
-        { size: "Pequeña", sku: "FIG-ZOR-S", price: 189.9, stock: 20, weight: 70 },
-        { size: "Grande", sku: "FIG-ZOR-L", price: 379.9, stock: 8, weight: 195 },
-      ],
-    },
-    {
-      name: "Figura Origami Ballena",
-      slug: "figura-origami-ballena",
-      description: "Pieza de la misma serie que el zorro. Se puede colgar o apoyar.",
-      categoryId: figuras.id,
-      status: ProductStatus.ACTIVE,
-      variants: [
-        { size: "Pequeña", sku: "FIG-BAL-S", price: 189.9, stock: 16, weight: 75 },
-        { size: "Grande", sku: "FIG-BAL-L", price: 379.9, stock: 6, weight: 205 },
-      ],
-    },
-    {
-      name: "Organizador de Escritorio",
-      slug: "organizador-escritorio",
+      name: "Salsa de Chile de Árbol",
+      slug: "salsa-chile-de-arbol",
       description:
-        "Compartimentos para plumas, clips y tarjetas. Base antideslizante de silicona.",
-      categoryId: organizadores.id,
+        "Chile de árbol y ajo, sin más. Picor directo y seco, sin dulzor que lo suavice.",
+      categoryId: picantes.id,
+      taxRateBps: SE_COME,
       status: ProductStatus.ACTIVE,
       variants: [
-        { size: "3 divisiones", sku: "ORG-ESC-3", price: 259.9, stock: 22, weight: 180 },
-        { size: "5 divisiones", sku: "ORG-ESC-5", price: 389.9, stock: 14, weight: 270 },
+        { size: "200 ml", sku: "SAL-ARB-200", price: 89, stock: 33, weight: 380 },
       ],
     },
+
+    // ── Aceites infusionados ─────────────────────────────────────────────────
     {
-      name: "Soporte para Audífonos",
-      slug: "soporte-audifonos",
+      name: "Aceite de Ajo Rostizado",
+      slug: "aceite-ajo-rostizado",
       description:
-        "Curva ergonómica que respeta la diadema. Peso equilibrado, no se voltea.",
-      categoryId: organizadores.id,
+        "Aceite de oliva infusionado en frío con ajo rostizado durante dos semanas. Para pastas, pan y verduras al horno.",
+      categoryId: aceites.id,
+      taxRateBps: SE_COME,
       status: ProductStatus.ACTIVE,
       variants: [
-        { size: "Única", sku: "SOP-AUD-U", price: 229.9, stock: 19, weight: 210 },
+        { size: "250 ml", sku: "ACE-AJO-250", price: 220, stock: 28, weight: 470 },
+        { size: "500 ml", sku: "ACE-AJO-500", price: 390, stock: 15, weight: 830 },
       ],
     },
     {
-      name: "Portalápices Modular",
-      slug: "portalapices-modular",
-      description: "Módulos que se ensamblan entre sí. Crece con tu escritorio.",
-      categoryId: organizadores.id,
-      status: ProductStatus.ACTIVE,
-      variants: [
-        { size: "Módulo simple", sku: "POR-MOD-1", price: 129.9, stock: 30, weight: 90 },
-        { size: "Set de 3", sku: "POR-MOD-3", price: 339.9, stock: 12, weight: 265 },
-      ],
-    },
-    {
-      name: "Soporte para Celular",
-      slug: "soporte-celular",
-      description: "Ángulo de 60° para videollamadas. Ranura para el cable de carga.",
-      categoryId: utilidad.id,
-      status: ProductStatus.ACTIVE,
-      variants: [
-        { size: "Única", sku: "SOP-CEL-U", price: 159.9, stock: 28, weight: 75 },
-      ],
-    },
-    {
-      name: "Gancho Adhesivo Reforzado",
-      slug: "gancho-adhesivo-reforzado",
-      description: "Soporta hasta 3 kg. Se vende por par, con cinta 3M incluida.",
-      categoryId: utilidad.id,
-      status: ProductStatus.ACTIVE,
-      variants: [
-        { size: "Par", sku: "GAN-ADH-2", price: 99.9, stock: 40, weight: 45 },
-        { size: "Set de 6", sku: "GAN-ADH-6", price: 249.9, stock: 17, weight: 130 },
-      ],
-    },
-    {
-      name: "Prototipo Lámpara Origami",
-      slug: "prototipo-lampara-origami",
+      name: "Aceite de Chile de Árbol",
+      slug: "aceite-chile-de-arbol",
       description:
-        "Todavía en pruebas de resistencia térmica. No visible en la tienda hasta aprobarse.",
-      categoryId: decoracion.id,
+        "Picante y limpio. Unas gotas bastan para levantar una sopa o una pizza.",
+      categoryId: aceites.id,
+      taxRateBps: SE_COME,
+      status: ProductStatus.ACTIVE,
+      variants: [
+        { size: "250 ml", sku: "ACE-ARB-250", price: 220, stock: 24, weight: 470 },
+      ],
+    },
+    {
+      name: "Aceite de Romero y Limón",
+      slug: "aceite-romero-limon",
+      description:
+        "Romero fresco y ralladura de limón amarillo. El más suave de los tres, para pescados y ensaladas.",
+      categoryId: aceites.id,
+      taxRateBps: SE_COME,
+      status: ProductStatus.ACTIVE,
+      variants: [
+        { size: "250 ml", sku: "ACE-ROM-250", price: 235, stock: 18, weight: 470 },
+      ],
+    },
+
+    // ── Despensa ─────────────────────────────────────────────────────────────
+    {
+      name: "Sal de Gusano",
+      slug: "sal-de-gusano",
+      description:
+        "Gusano de maguey, sal de mar y chile pasilla, molidos en metate. Para el mezcal y para la fruta.",
+      categoryId: salesEspecias.id,
+      taxRateBps: SE_COME,
+      status: ProductStatus.ACTIVE,
+      variants: [
+        { size: "80 g", sku: "DES-SAL-GUS-80", price: 85, stock: 50, weight: 150 },
+      ],
+    },
+    {
+      name: "Chile Piquín Molido",
+      slug: "chile-piquin-molido",
+      description: "Piquín seco de Veracruz, molido grueso. Pica más de lo que aparenta.",
+      categoryId: salesEspecias.id,
+      taxRateBps: SE_COME,
+      status: ProductStatus.ACTIVE,
+      variants: [{ size: "60 g", sku: "DES-PIQ-60", price: 75, stock: 44, weight: 120 }],
+    },
+    {
+      name: "Miel de Agave con Vainilla",
+      slug: "miel-agave-vainilla",
+      description:
+        "Agave azul con vaina de vainilla de Papantla infusionada en frío. Para café, yogur y hot cakes.",
+      categoryId: mieles.id,
+      taxRateBps: SE_COME,
+      status: ProductStatus.ACTIVE,
+      variants: [
+        { size: "330 g", sku: "DES-MIE-VAI-330", price: 145, stock: 26, weight: 560 },
+      ],
+    },
+
+    // ── Utensilios ───────────────────────────────────────────────────────────
+    // Estos NO son alimento: llevan 16%. Es lo que obliga a que la tasa viva en
+    // el producto y no en una constante global.
+    {
+      name: "Cuchara de Madera de Encino",
+      slug: "cuchara-madera-encino",
+      description:
+        "Tallada a mano en encino, tratada con aceite de linaza. No raya el sartén ni transmite el calor.",
+      categoryId: utensilios.id,
+      taxRateBps: NO_SE_COME,
+      status: ProductStatus.ACTIVE,
+      variants: [
+        { size: "25 cm", sku: "UTE-CUC-25", price: 80, stock: 30, weight: 95 },
+        { size: "30 cm", sku: "UTE-CUC-30", price: 95, stock: 25, weight: 120 },
+      ],
+    },
+    {
+      name: "Molcajete de Piedra Volcánica",
+      slug: "molcajete-piedra-volcanica",
+      description:
+        "Basalto curado y listo para usar. Pesa lo que debe pesar: si es ligero, no es piedra.",
+      categoryId: utensilios.id,
+      taxRateBps: NO_SE_COME,
+      status: ProductStatus.ACTIVE,
+      variants: [
+        { size: "Mediano (18 cm)", sku: "UTE-MOL-M", price: 650, stock: 8, weight: 3200 },
+        { size: "Grande (22 cm)", sku: "UTE-MOL-G", price: 890, stock: 4, weight: 4800 },
+      ],
+    },
+
+    // ── En borrador ──────────────────────────────────────────────────────────
+    {
+      name: "Salsa Macha con Chapulín",
+      slug: "salsa-macha-chapulin",
+      description:
+        "En pruebas de conservación. No visible en la tienda hasta validar la caducidad.",
+      categoryId: machas.id,
+      taxRateBps: SE_COME,
       // En borrador a propósito: demuestra que DRAFT no aparece en la tienda.
       status: ProductStatus.DRAFT,
       variants: [
-        { size: "Prototipo", sku: "PRO-LAM-X", price: 599.9, stock: 2, weight: 410 },
+        { size: "250 ml", sku: "SAL-MAC-CHA-250", price: 260, stock: 6, weight: 450 },
       ],
     },
   ];
@@ -228,11 +302,12 @@ async function main(): Promise<void> {
   }
 
   // ── Resumen ────────────────────────────────────────────────────────────────
-  const [categorias, totalProductos, activos, variantes] = await Promise.all([
+  const [categorias, totalProductos, activos, variantes, conIva] = await Promise.all([
     prisma.category.count(),
     prisma.product.count(),
     prisma.product.count({ where: { status: ProductStatus.ACTIVE } }),
     prisma.productVariant.count(),
+    prisma.product.count({ where: { taxRateBps: TAX_RATE_STANDARD_BPS } }),
   ]);
 
   console.warn(
@@ -242,6 +317,7 @@ async function main(): Promise<void> {
       `  ${String(categorias)} categorías`,
       `  ${String(totalProductos)} productos (${String(activos)} activos, ${String(totalProductos - activos)} en borrador)`,
       `  ${String(variantes)} variantes`,
+      `  ${String(totalProductos - conIva)} con tasa 0% (alimentos), ${String(conIva)} con 16%`,
       "",
     ].join("\n"),
   );

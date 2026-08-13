@@ -72,7 +72,7 @@ export function findProducts(
     ...(params.search === undefined
       ? {}
       : {
-          // insensitive: buscar "maceta" encuentra "Maceta Hexagonal".
+          // insensitive: buscar "salsa" encuentra "Salsa Macha".
           name: { contains: params.search, mode: Prisma.QueryMode.insensitive },
         }),
     // `some`: el producto entra si AL MENOS UNA variante cumple el filtro.

@@ -10,7 +10,7 @@ import { listCategories, listProducts } from "../../lib/api";
 export const metadata: Metadata = {
   title: "Catálogo",
   description:
-    "Macetas, figuras, organizadores y soportes impresos en 3D. Elige tamaño y color.",
+    "Salsas, aceites infusionados, sales y utensilios de cocina. Hechos en tandas pequeñas.",
 };
 
 export default async function CatalogoPage({
@@ -45,7 +45,7 @@ export default async function CatalogoPage({
               : tituloDeCategoria(categorias, categoriaActiva)}
           </h1>
           <p className="mt-1 text-ink-500">
-            {items.length === 1 ? "1 pieza" : `${String(items.length)} piezas`}
+            {items.length === 1 ? "1 producto" : `${String(items.length)} productos`}
           </p>
         </header>
 
@@ -58,7 +58,7 @@ export default async function CatalogoPage({
               type="search"
               name="q"
               defaultValue={params.q ?? ""}
-              placeholder="Buscar una pieza"
+              placeholder="Buscar un producto"
               aria-label="Buscar en el catálogo"
               className="h-10 w-56 rounded-md border border-border-strong bg-surface-raised px-3 text-sm text-ink-900 placeholder:text-ink-500"
             />
@@ -102,7 +102,7 @@ export default async function CatalogoPage({
         {items.length === 0 ? (
           <Card className="p-0">
             <EmptyState
-              title="No encontramos piezas con esos filtros"
+              title="No encontramos productos con esos filtros"
               description="Prueba con otra búsqueda o mira el catálogo completo."
               action={
                 <Link href="/productos">

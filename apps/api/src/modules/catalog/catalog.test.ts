@@ -62,34 +62,34 @@ describe("GET /v1/products", () => {
     const body = response.json<{ items: { slug: string }[] }>();
 
     const slugs = body.items.map((item) => item.slug);
-    expect(slugs).not.toContain("prototipo-lampara-origami");
+    expect(slugs).not.toContain("salsa-macha-chapulin");
   });
 
   it("filtra por categoría", async () => {
     const response = await app.inject({
       method: "GET",
-      url: "/v1/products?categorySlug=macetas",
+      url: "/v1/products?categorySlug=machas",
     });
 
     expect(response.statusCode).toBe(200);
     const body = response.json<{ items: { categorySlug: string }[] }>();
     expect(body.items.length).toBeGreaterThan(0);
     for (const item of body.items) {
-      expect(item.categorySlug).toBe("macetas");
+      expect(item.categorySlug).toBe("machas");
     }
   });
 
   it("busca por nombre sin distinguir mayúsculas", async () => {
     const response = await app.inject({
       method: "GET",
-      url: "/v1/products?search=MACETA",
+      url: "/v1/products?search=SALSA",
     });
 
     expect(response.statusCode).toBe(200);
     const body = response.json<{ items: { name: string }[] }>();
     expect(body.items.length).toBeGreaterThan(0);
     for (const item of body.items) {
-      expect(item.name.toLowerCase()).toContain("maceta");
+      expect(item.name.toLowerCase()).toContain("salsa");
     }
   });
 
@@ -130,7 +130,7 @@ describe("GET /v1/products/:slug", () => {
   it("devuelve la ficha con sus variantes", async () => {
     const response = await app.inject({
       method: "GET",
-      url: "/v1/products/maceta-hexagonal",
+      url: "/v1/products/salsa-macha-cacahuate",
     });
 
     expect(response.statusCode).toBe(200);
@@ -139,7 +139,7 @@ describe("GET /v1/products/:slug", () => {
       variants: { size: string; priceCents: number; sku: string }[];
     }>();
 
-    expect(body.name).toBe("Maceta Hexagonal");
+    expect(body.name).toBe("Salsa Macha de Cacahuate");
     // Un producto, tres tamaños, tres precios distintos: el modelo de datos
     // del Día 2 llegando hasta la respuesta HTTP.
     expect(body.variants).toHaveLength(3);
@@ -163,7 +163,7 @@ describe("GET /v1/products/:slug", () => {
   it("responde 404 para un producto en borrador", async () => {
     const response = await app.inject({
       method: "GET",
-      url: "/v1/products/prototipo-lampara-origami",
+      url: "/v1/products/salsa-macha-chapulin",
     });
 
     expect(response.statusCode).toBe(404);
@@ -179,9 +179,9 @@ describe("GET /v1/categories", () => {
       items: { slug: string; children: { slug: string }[] }[];
     }>();
 
-    const decoracion = body.items.find((item) => item.slug === "decoracion");
-    expect(decoracion).toBeDefined();
-    expect(decoracion?.children.map((child) => child.slug)).toContain("macetas");
+    const salsas = body.items.find((item) => item.slug === "salsas");
+    expect(salsas).toBeDefined();
+    expect(salsas?.children.map((child) => child.slug)).toContain("machas");
   });
 });
 

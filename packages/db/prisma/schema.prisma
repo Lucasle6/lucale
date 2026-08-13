@@ -163,7 +163,7 @@ model Address {
 // ─── Catálogo ────────────────────────────────────────────────────────────────
 
 /// Categorías del catálogo, en árbol: una categoría puede tener padre e hijas
-/// (Decoración → Macetas → Macetas de escritorio). De ahí la auto-relación.
+/// (Despensa → Sales y especias → Sales de gusano). De ahí la auto-relación.
 model Category {
   id       String @id @default(uuid(7)) @db.Uuid
   name     String

@@ -194,7 +194,7 @@ export function ProductForm({
           <div>
             <h2 className="text-xl text-ink-900">Variantes</h2>
             <p className="text-sm text-ink-500">
-              Cada tamaño tiene su propio precio y su propio inventario.
+              Cada presentación tiene su propio precio y su propio inventario.
             </p>
           </div>
           <Button
@@ -216,13 +216,13 @@ export function ProductForm({
               className="grid gap-3 rounded-md border border-border-subtle p-4 sm:grid-cols-4"
             >
               <Input
-                label="Tamaño"
+                label="Presentación"
                 value={variante.size}
                 onChange={(e) => {
                   actualizarVariante(indice, "size", e.target.value);
                 }}
                 required
-                placeholder="Pequeña"
+                placeholder="250 ml"
               />
               <Input
                 label="SKU"

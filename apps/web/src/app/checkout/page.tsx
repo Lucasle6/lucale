@@ -36,7 +36,7 @@ export default async function CheckoutPage(): Promise<ReactElement> {
           <Card className="p-0">
             <EmptyState
               title="No hay nada que pagar"
-              description="Tu carrito está vacío. Elige algunas piezas y vuelve por aquí."
+              description="Tu carrito está vacío. Elige algunos productos y vuelve por aquí."
               action={
                 <Link href="/productos">
                   <Button>Ver catálogo</Button>

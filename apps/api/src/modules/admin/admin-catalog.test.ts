@@ -94,8 +94,8 @@ async function crearProducto(overrides: Record<string, unknown> = {}) {
     url: "/v1/admin/products",
     cookies: cookiesAdmin,
     payload: {
-      name: "Prueba Maceta",
-      slug: `prueba-maceta-${String(Date.now())}-${String(contador)}`,
+      name: "Prueba Salsa",
+      slug: `prueba-salsa-${String(Date.now())}-${String(contador)}`,
       // Obligatoria desde que el catálogo mezcla alimentos (0%) con utensilios
       // (16%). Los casos que prueban la tasa en sí la sobrescriben.
       taxRateBps: 1600,

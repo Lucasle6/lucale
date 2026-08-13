@@ -70,7 +70,7 @@ con calma sin que sea visible en la tienda.
 `id` · `productId` · `size` · `sku` (único) · `priceCents` · `currency` · `stock` ·
 `weightGrams` · `deletedAt`
 
-> El precio está en la **variante**, no en el producto: una impresión 3D grande cuesta más
+> El precio está en la **variante**, no en el producto: un frasco de 500 ml cuesta más
 > que la pequeña. Esta separación es lo que hace el modelo genérico — mañana `size` puede
 > ser talla de ropa, capacidad, o lo que sea, sin migrar nada.
 

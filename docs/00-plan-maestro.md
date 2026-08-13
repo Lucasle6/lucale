@@ -6,7 +6,7 @@ E-commerce fullstack construido de cero. 3 semanas, 15 días hábiles, ~100 hora
 esfuerzo en _hacer las cosas bien_ en vez de en escalar. Todas las decisiones asumen que
 el cuello de botella es tu aprendizaje, no el servidor.
 
-**Producto inicial:** impresiones 3D. Modelado de forma genérica —`nombre`, `precio`,
+**Producto inicial:** salsas, aceites infusionados y utensilios de cocina. Modelado de forma genérica —`nombre`, `precio`,
 `tamaño`— para poder cambiar de rubro sin tocar el esquema.
 
 ---
@@ -61,7 +61,7 @@ mensaje claro.
 
 - Esquema Prisma completo (ver [`02-modelo-de-datos.md`](./02-modelo-de-datos.md))
 - Migraciones versionadas e índices deliberados (slug, email, sku, orderNumber)
-- Seed con ~12 productos de impresión 3D de ejemplo
+- Seed con ~14 productos de ejemplo, mezclando alimentos (IVA 0%) y utensilios (16%)
 
 **Aprendes**
 Tres decisiones que separan un esquema de juguete de uno real:

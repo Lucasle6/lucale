@@ -20,11 +20,11 @@ export default async function HomePage(): Promise<ReactElement> {
             Hechas con calma
           </p>
           <h1 className="mt-3 max-w-2xl font-display text-4xl leading-tight text-ink-900 sm:text-5xl">
-            Piezas de impresión 3D para decorar, ordenar y resolver
+            Salsas y aceites para cocinar todos los días
           </h1>
           <p className="mt-4 max-w-prose text-lg text-ink-700">
-            Cada pieza se imprime una capa a la vez, en PLA mate. Elige el tamaño que
-            necesites: hay uno para cada rincón.
+            Chiles tostados en comal y aceites infusionados en frío, en tandas pequeñas.
+            Sin conservadores, sin prisa.
           </p>
           <div className="mt-8">
             <Link href="/productos">
@@ -36,7 +36,7 @@ export default async function HomePage(): Promise<ReactElement> {
         <section className="border-t border-border-subtle bg-surface/60">
           <div className="mx-auto max-w-6xl px-6 py-16">
             <div className="mb-8 flex items-end justify-between gap-4">
-              <h2 className="font-display text-2xl text-ink-900">Recién salidas</h2>
+              <h2 className="font-display text-2xl text-ink-900">Recién hechas</h2>
               <Link href="/productos" className="text-sm text-brand-700 hover:underline">
                 Ver todo →
               </Link>
@@ -62,7 +62,7 @@ export function Footer(): ReactElement {
   return (
     <footer className="border-t border-border-subtle">
       <div className="mx-auto max-w-6xl px-6 py-10 text-sm text-ink-500">
-        <p>LuCaLe · Impresión 3D · Hecho en México</p>
+        <p>LuCaLe · Cocina mexicana · Hecho en México</p>
       </div>
     </footer>
   );

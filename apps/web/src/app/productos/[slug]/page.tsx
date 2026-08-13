@@ -39,7 +39,7 @@ export async function generateMetadata({
 
   const descripcion =
     producto.description ??
-    `${producto.name} — impresión 3D disponible desde ${producto.priceFromFormatted}.`;
+    `${producto.name} — disponible desde ${producto.priceFromFormatted}.`;
 
   return {
     title: producto.name,
