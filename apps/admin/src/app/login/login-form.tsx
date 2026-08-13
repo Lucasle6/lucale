@@ -125,7 +125,7 @@ export function LoginForm(): ReactElement {
     <Card className="w-full max-w-md">
       <header className="mb-6">
         <p className="text-sm font-medium tracking-wide text-brand-600 uppercase">
-          Bodegón de José
+          LuCaLe
         </p>
         <h1 className="mt-1 text-2xl text-ink-900">
           {paso.fase === "credenciales"

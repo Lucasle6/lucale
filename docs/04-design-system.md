@@ -1,4 +1,4 @@
-# Design system — Bodegón de José
+# Design system — LuCaLe
 
 Paleta sobria de blancos, cremas y pasteles. Delicada sin volverse frágil, profesional sin
 volverse fría.

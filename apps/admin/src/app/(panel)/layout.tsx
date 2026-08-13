@@ -41,7 +41,7 @@ export default async function PanelLayout({
           <div className="flex items-center gap-6">
             <Link href="/productos" className="flex flex-col leading-tight">
               <span className="text-xs tracking-wide text-brand-600 uppercase">
-                Bodegón de José
+                LuCaLe
               </span>
               <span className="text-lg text-ink-900">Panel</span>
             </Link>

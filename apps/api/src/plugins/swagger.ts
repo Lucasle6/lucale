@@ -17,7 +17,7 @@ export async function registerSwagger(app: FastifyInstance): Promise<void> {
   await app.register(swagger, {
     openapi: {
       info: {
-        title: "Bodegón de José — API",
+        title: "LuCaLe — API",
         description: "API del e-commerce. Catálogo, cuentas, carrito y pedidos.",
         version: "0.1.0",
       },

@@ -1,4 +1,4 @@
-# Modelo de datos — Bodegón de José
+# Modelo de datos — LuCaLe
 
 PostgreSQL 17 vía Prisma. Este es el diseño objetivo del **Día 2**; el esquema real vivirá
 en `packages/db/prisma/schema.prisma`.

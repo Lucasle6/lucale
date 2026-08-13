@@ -23,8 +23,8 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: "Bodegón de José",
-    template: "%s · Bodegón de José",
+    default: "LuCaLe",
+    template: "%s · LuCaLe",
   },
   description:
     "Piezas de impresión 3D para decorar, ordenar y resolver. Hechas con calma.",

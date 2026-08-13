@@ -1,4 +1,4 @@
-# Arquitectura — Bodegón de José
+# Arquitectura — LuCaLe
 
 Cada decisión con su porqué y su costo. En una defensa no te preguntan _qué_ usaste, te
 preguntan _por qué_.

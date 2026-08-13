@@ -1,4 +1,4 @@
-# Plan maestro — Bodegón de José
+# Plan maestro — LuCaLe
 
 E-commerce fullstack construido de cero. 3 semanas, 15 días hábiles, ~100 horas.
 

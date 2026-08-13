@@ -83,7 +83,7 @@ const EnvSchema = z
 
     // Nombre que aparece en la app de autenticación del usuario (Google
     // Authenticator, 1Password...) junto al código de 6 dígitos.
-    TOTP_ISSUER: z.string().min(1).default("Bodegón de José"),
+    TOTP_ISSUER: z.string().min(1).default("LuCaLe"),
 
     // Orígenes permitidos por CORS. Se configuran en el Día 3, pero se validan desde
     // hoy: una allowlist explícita es más segura que un `origin: true` que acepta todo.

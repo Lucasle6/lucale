@@ -1,4 +1,4 @@
-# Seguridad — Bodegón de José
+# Seguridad — LuCaLe
 
 Pediste "el estándar más alto". Esto es lo que eso significa en concreto: 20 controles,
 cada uno con el ataque que detiene y el día en que se implementa.

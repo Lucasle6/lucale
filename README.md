@@ -1,4 +1,4 @@
-# Bodegón de José
+# LuCaLe
 
 E-commerce fullstack construido de cero. Proyecto de graduación.
 

@@ -13,7 +13,7 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: "Panel · Bodegón de José",
+    default: "Panel · LuCaLe",
     template: "%s · Panel",
   },
   /**

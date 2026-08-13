@@ -29,7 +29,7 @@ export default function DesignSystemPage(): ReactElement {
     <main className="mx-auto max-w-4xl px-6 py-16">
       <header className="mb-16">
         <p className="text-sm font-medium tracking-wide text-brand-600 uppercase">
-          Bodegón de José
+          LuCaLe
         </p>
         <h1 className="mt-2 text-4xl text-ink-900">Design system</h1>
         <p className="mt-3 max-w-prose text-lg text-ink-700">

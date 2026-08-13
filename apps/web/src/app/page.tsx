@@ -62,7 +62,7 @@ export function Footer(): ReactElement {
   return (
     <footer className="border-t border-border-subtle">
       <div className="mx-auto max-w-6xl px-6 py-10 text-sm text-ink-500">
-        <p>Bodegón de José · Impresión 3D · Hecho en México</p>
+        <p>LuCaLe · Impresión 3D · Hecho en México</p>
       </div>
     </footer>
   );

@@ -23,7 +23,7 @@ export async function Header(): Promise<ReactElement> {
           <span className="text-xs tracking-widest text-brand-600 uppercase">
             Impresión 3D
           </span>
-          <span className="font-display text-xl text-ink-900">Bodegón de José</span>
+          <span className="font-display text-xl text-ink-900">LuCaLe</span>
         </Link>
 
         <div className="flex items-center gap-2">
