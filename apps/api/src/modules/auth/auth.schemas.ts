@@ -61,10 +61,22 @@ export const passwordSchema = z
     message: "esta contraseña aparece en listas de contraseñas filtradas, elige otra",
   });
 
+/**
+ * EL ORDEN IMPORTA: se limpia ANTES de validar.
+ *
+ * Escrito al revés —validar y después `.transform(trim)`— la limpieza llega
+ * tarde: el formato ya se comprobó contra la cadena sucia. Un correo copiado y
+ * pegado con un espacio de más, o al que el teclado del móvil le añadió uno,
+ * se rechazaba con "no parece un correo válido" siendo válido.
+ *
+ * `.pipe()` es lo que permite encadenar: primero un string que se limpia,
+ * después el esquema de correo, que ya valida el resultado limpio.
+ */
 export const emailSchema = z
-  .email("no parece un correo válido")
-  .max(254) // límite del estándar RFC 5321
-  .transform((value) => value.trim().toLowerCase());
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email("no parece un correo válido").max(254)); // 254 = RFC 5321
 
 // ─── Entradas ────────────────────────────────────────────────────────────────
 
