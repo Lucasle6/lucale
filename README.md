@@ -5,9 +5,9 @@ E-commerce fullstack construido de cero. Proyecto de graduación.
 **Stack** — Next.js 16 · React 19 · TypeScript · Fastify 5 · PostgreSQL 17 · Prisma 6 ·
 Stripe · Tailwind v4
 
-**Estado** — Días 1–9 completados. La tienda pública ya tiene catálogo, filtros y fichas
-de producto con SEO (metadatos, sitemap y JSON-LD), y el panel permite gestionarlo todo.
-121 tests en verde. Siguiente: Día 10 — carrito y cuenta de usuario.
+**Estado** — **Semanas 1 y 2 completas** (Días 1–10). La tienda tiene catálogo con SEO y
+carrito funcional, y el panel permite gestionar el inventario de punta a punta.
+137 tests en verde. Siguiente: Semana 3 — Día 11, checkout con Stripe.
 
 ---
 
