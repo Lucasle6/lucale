@@ -13,6 +13,7 @@ import Fastify from "fastify";
 import type { FastifyInstance } from "fastify";
 import { serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 import { env, isDevelopment, isProduction } from "./config/env.js";
+import { registerCsrf } from "./plugins/csrf.js";
 import { registerErrorHandler } from "./plugins/error-handler.js";
 import { registerSecurity } from "./plugins/security.js";
 import { registerSwagger } from "./plugins/swagger.js";
@@ -27,7 +28,21 @@ import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
 import { checkoutRoutes } from "./modules/checkout/checkout.routes.js";
 import { stripeWebhookRoutes } from "./modules/webhooks/stripe-webhook.routes.js";
 
-export async function buildApp(): Promise<FastifyInstance> {
+export interface OpcionesApp {
+  /**
+   * Fuerza la protección CSRF aunque estemos bajo Vitest.
+   *
+   * Por defecto se desactiva en los tests, igual que el rate limiting: las 164
+   * pruebas existentes hacen mutaciones con `inject()` sin token, y exigírselo
+   * las rompería todas por un motivo que no tiene que ver con lo que prueban.
+   *
+   * Esta llave existe para que las pruebas DEL PROPIO CSRF puedan encenderlo y
+   * verificarlo de verdad, en vez de dejarlo sin cobertura.
+   */
+  csrf?: boolean;
+}
+
+export async function buildApp(opciones: OpcionesApp = {}): Promise<FastifyInstance> {
   // Bajo Vitest los logs se silencian: la salida de un test debe ser el
   // resultado de las pruebas, no el tráfico HTTP simulado.
   const isTest = env.VITEST !== undefined;
@@ -72,6 +87,12 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.setSerializerCompiler(serializerCompiler);
 
   await registerSecurity(app);
+
+  // Después de registerSecurity porque necesita el plugin de cookies ya cargado.
+  if (opciones.csrf ?? !isTest) {
+    registerCsrf(app);
+  }
+
   registerErrorHandler(app);
 
   // La documentación no se publica en producción.
@@ -128,6 +149,24 @@ export async function buildApp(): Promise<FastifyInstance> {
       authRoutes(instance, mailer);
       adminRoutes(instance, mailer);
       adminCatalogRoutes(instance, storage);
+      /**
+       * Entrega la cookie del token CSRF al NAVEGADOR.
+       *
+       * Hace falta un endpoint dedicado porque la tienda hace sus lecturas
+       * desde el servidor (Server Components): esas respuestas traen la cookie,
+       * pero se quedan en el servidor de Next y nunca llegan al navegador. Sin
+       * esto, el primer intento de añadir algo al carrito sería siempre el
+       * primero en pedir la cookie, y siempre fallaría.
+       *
+       * No devuelve el token en el cuerpo: la cookie no es httpOnly, así que el
+       * cliente ya puede leerla. Un dato, una fuente.
+       */
+      instance.get(
+        "/csrf",
+        { schema: { tags: ["system"], summary: "Entrega la cookie del token CSRF" } },
+        () => ({ ok: true }),
+      );
+
       cartRoutes(instance);
       checkoutRoutes(instance);
       // Devuelve promesa porque registra su propio parser de cuerpo crudo.

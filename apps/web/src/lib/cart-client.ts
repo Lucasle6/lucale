@@ -8,6 +8,7 @@
  */
 
 import type { Cart } from "@bodegon/shared";
+import { conCsrf } from "./csrf";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
 
@@ -15,7 +16,13 @@ async function pedir(path: string, options: RequestInit = {}): Promise<Cart> {
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     credentials: "include",
-    headers: { "content-type": "application/json", ...options.headers },
+    // El token CSRF viaja en cabecera además de en cookie. Es lo que un sitio
+    // ajeno no puede falsificar: puede provocar que el navegador mande la
+    // cookie, pero no leerla para copiarla aquí.
+    headers: await conCsrf({
+      "content-type": "application/json",
+      ...(options.headers as Record<string, string> | undefined),
+    }),
   });
 
   const cuerpo: unknown = await response.json();

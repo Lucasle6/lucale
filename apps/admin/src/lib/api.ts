@@ -14,6 +14,8 @@
  * navegadores no aíslan cookies por puerto, solo por host.
  */
 
+import { conCsrf } from "./csrf";
+
 /** URL base de la API. En producción será el dominio real. */
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
 
@@ -61,10 +63,13 @@ export async function apiClient<T>(path: string, options: RequestInit = {}): Pro
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     credentials: "include",
-    headers: {
+    // El token CSRF va en cabecera además de en cookie (control nº 9). El
+    // panel lo necesita igual que la tienda: es donde se cambian precios y se
+    // aprueban reembolsos, o sea el objetivo que más interesa secuestrar.
+    headers: await conCsrf({
       ...(options.body instanceof FormData ? {} : { "content-type": "application/json" }),
-      ...options.headers,
-    },
+      ...(options.headers as Record<string, string> | undefined),
+    }),
   });
 
   return parsear<T>(response);

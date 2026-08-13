@@ -10,6 +10,7 @@
  */
 
 import type { CheckoutInput, CheckoutSession } from "@bodegon/shared";
+import { conCsrf } from "./csrf";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
 
@@ -17,7 +18,7 @@ export async function crearSesionDePago(input: CheckoutInput): Promise<CheckoutS
   const response = await fetch(`${API_URL}/checkout/session`, {
     method: "POST",
     credentials: "include",
-    headers: { "content-type": "application/json" },
+    headers: await conCsrf({ "content-type": "application/json" }),
     body: JSON.stringify(input),
   });
 
