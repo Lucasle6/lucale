@@ -1,8 +1,11 @@
 "use client";
 
 import { Badge, Button } from "@bodegon/ui";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
+import { addToCart } from "../../../lib/cart-client";
 import type { ProductVariant } from "../../../lib/api";
 
 /**
@@ -21,9 +24,35 @@ export function SelectorTamano({
 }: {
   variantes: ProductVariant[];
 }): ReactElement {
+  const router = useRouter();
+
   // Arranca en la primera con stock; si no hay ninguna, en la primera.
   const inicial = variantes.find((v) => v.inStock) ?? variantes[0];
   const [seleccionadaId, setSeleccionadaId] = useState(inicial?.id ?? "");
+
+  const [agregando, setAgregando] = useState(false);
+  const [agregado, setAgregado] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function agregar(variantId: string): void {
+    setError(null);
+    setAgregado(false);
+    setAgregando(true);
+
+    void addToCart(variantId, 1)
+      .then(() => {
+        setAgregado(true);
+        // Refresca los Server Components para que el contador de la cabecera
+        // muestre el número nuevo.
+        router.refresh();
+      })
+      .catch((e: unknown) => {
+        setError(e instanceof Error ? e.message : "No se pudo agregar al carrito");
+      })
+      .finally(() => {
+        setAgregando(false);
+      });
+  }
 
   const seleccionada = variantes.find((v) => v.id === seleccionadaId) ?? variantes[0];
 
@@ -75,13 +104,35 @@ export function SelectorTamano({
         )}
       </div>
 
-      <div>
-        {/* El carrito llega el Día 10; hoy el botón queda anunciado pero
-            inactivo, en vez de fingir que funciona. */}
-        <Button size="lg" disabled>
+      <div className="flex flex-col gap-2">
+        <Button
+          size="lg"
+          disabled={!seleccionada.inStock}
+          isLoading={agregando}
+          onClick={() => {
+            agregar(seleccionada.id);
+          }}
+        >
           {seleccionada.inStock ? "Agregar al carrito" : "Sin existencias"}
         </Button>
-        <p className="mt-2 text-sm text-ink-500">El carrito se activa muy pronto.</p>
+
+        {error !== null ? (
+          <p role="alert" className="text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
+
+        {agregado ? (
+          // role="status" y no "alert": es una confirmación, no un problema.
+          // El lector de pantalla lo anuncia sin interrumpir lo que se esté
+          // leyendo.
+          <p role="status" className="flex items-center gap-2 text-sm text-sage-700">
+            Añadido a tu carrito.{" "}
+            <Link href="/carrito" className="underline">
+              Verlo
+            </Link>
+          </p>
+        ) : null}
       </div>
 
       <dl className="border-t border-border-subtle pt-4 text-sm">

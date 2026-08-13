@@ -1,5 +1,8 @@
 import "server-only";
 
+import type { Cart } from "@bodegon/shared";
+import { cookies } from "next/headers";
+
 /**
  * Cliente de la API para la tienda.
  *
@@ -113,4 +116,42 @@ export function listCategories(): Promise<{ items: Category[] }> {
 /** Compone la URL absoluta de una imagen servida por la API. */
 export function imageUrl(url: string): string {
   return `${FILES_URL}${url}`;
+}
+
+// ─── Carrito ─────────────────────────────────────────────────────────────────
+
+/**
+ * Lee el carrito desde un Server Component.
+ *
+ * A diferencia del catálogo, el carrito SÍ depende de quién mira: hay que
+ * reenviar las cookies a mano y no se puede cachear. Cachear el carrito
+ * mostraría el de otra persona.
+ */
+export async function getCartServer(): Promise<Cart> {
+  const store = await cookies();
+  const cookieHeader = store
+    .getAll()
+    .map((c) => `${c.name}=${c.value}`)
+    .join("; ");
+
+  const response = await fetch(`${API_URL}/cart`, {
+    headers: {
+      accept: "application/json",
+      ...(cookieHeader === "" ? {} : { cookie: cookieHeader }),
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    // Un fallo al leer el carrito no debe tumbar la página: se muestra vacío.
+    return {
+      lines: [],
+      itemCount: 0,
+      subtotalCents: 0,
+      subtotalFormatted: "$0.00",
+      hasIssues: false,
+    };
+  }
+
+  return (await response.json()) as Cart;
 }

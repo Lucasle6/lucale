@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactElement } from "react";
-import { listCategories } from "../lib/api";
+import { getCartServer, listCategories } from "../lib/api";
 
 /**
  * Cabecera de la tienda.
@@ -9,7 +9,12 @@ import { listCategories } from "../lib/api";
  * dentro del HTML. Un rastreador de buscador ve los enlaces sin ejecutar nada.
  */
 export async function Header(): Promise<ReactElement> {
-  const { items: categorias } = await listCategories();
+  // Las dos consultas van en paralelo. La de categorías se cachea 5 minutos;
+  // la del carrito nunca, porque depende de quién mire.
+  const [{ items: categorias }, carrito] = await Promise.all([
+    listCategories(),
+    getCartServer(),
+  ]);
 
   return (
     <header className="border-b border-border-subtle bg-bg/90 backdrop-blur">
@@ -21,20 +26,42 @@ export async function Header(): Promise<ReactElement> {
           <span className="font-display text-xl text-ink-900">Bodegón de José</span>
         </Link>
 
-        <nav aria-label="Categorías">
-          <ul className="flex flex-wrap items-center gap-1">
-            <li>
-              <EnlaceNav href="/productos">Todo</EnlaceNav>
-            </li>
-            {categorias.map((categoria) => (
-              <li key={categoria.id}>
-                <EnlaceNav href={`/productos?categoria=${categoria.slug}`}>
-                  {categoria.name}
-                </EnlaceNav>
+        <div className="flex items-center gap-2">
+          <nav aria-label="Categorías">
+            <ul className="flex flex-wrap items-center gap-1">
+              <li>
+                <EnlaceNav href="/productos">Todo</EnlaceNav>
               </li>
-            ))}
-          </ul>
-        </nav>
+              {categorias.map((categoria) => (
+                <li key={categoria.id}>
+                  <EnlaceNav href={`/productos?categoria=${categoria.slug}`}>
+                    {categoria.name}
+                  </EnlaceNav>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <Link
+            href="/carrito"
+            className="flex items-center gap-2 rounded-md border border-border-strong px-3 py-1.5 text-sm text-ink-900 transition-colors hover:border-brand-400"
+          >
+            <span aria-hidden="true">Carrito</span>
+            {carrito.itemCount > 0 ? (
+              <span className="grid min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs text-white">
+                {carrito.itemCount}
+              </span>
+            ) : null}
+            {/* El texto visible dice solo "Carrito"; el lector de pantalla
+                recibe la frase completa con la cantidad. */}
+            <span className="sr-only">
+              Ver carrito
+              {carrito.itemCount > 0
+                ? `, ${String(carrito.itemCount)} ${carrito.itemCount === 1 ? "pieza" : "piezas"}`
+                : " (vacío)"}
+            </span>
+          </Link>
+        </div>
       </div>
     </header>
   );

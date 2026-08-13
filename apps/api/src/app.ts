@@ -22,6 +22,7 @@ import { UPLOAD_DIR, createLocalStorage } from "./lib/storage.js";
 import { adminCatalogRoutes } from "./modules/admin/admin-catalog.routes.js";
 import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
+import { cartRoutes } from "./modules/cart/cart.routes.js";
 import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -125,6 +126,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       authRoutes(instance, mailer);
       adminRoutes(instance, mailer);
       adminCatalogRoutes(instance, storage);
+      cartRoutes(instance);
       return Promise.resolve();
     },
     { prefix: "/v1" },

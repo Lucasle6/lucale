@@ -16,6 +16,8 @@ import {
   refreshCookieOptions,
 } from "../../lib/jwt.js";
 import type { Mailer } from "../../lib/mailer.js";
+import { CART_COOKIE } from "../cart/cart.controller.js";
+import * as cartService from "../cart/cart.service.js";
 import * as authService from "./auth.service.js";
 import type { SessionTokens } from "./auth.service.js";
 import type {
@@ -98,11 +100,42 @@ export function login(mailer: Mailer) {
     }
 
     ponerCookies(reply, resultado.tokens);
+    await fusionarCarritoDeInvitado(request, reply, resultado.user.id);
     await reply.send({
       status: "authenticated",
       user: authService.toProfile(resultado.user),
     });
   };
+}
+
+/**
+ * Une el carrito de invitado con el de la cuenta al iniciar sesión.
+ *
+ * El escenario que salva: alguien navega sin cuenta, mete tres piezas, y
+ * entonces inicia sesión para pagar. Sin esto, su carrito desaparecería en el
+ * momento exacto en que iba a comprar — y con él, la venta.
+ *
+ * Nunca lanza: si la fusión falla, el usuario debe poder entrar igualmente.
+ * Perder un carrito es molesto; no poder acceder a tu cuenta es peor.
+ */
+async function fusionarCarritoDeInvitado(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  userId: string,
+): Promise<void> {
+  const cookie = request.cookies[CART_COOKIE];
+  if (cookie === undefined) return;
+
+  const unsigned = request.unsignCookie(cookie);
+  if (!unsigned.valid || unsigned.value === null) return;
+
+  try {
+    await cartService.mergeGuestCart(unsigned.value, userId);
+    // La cookie de invitado ya no hace falta: el carrito vive en la cuenta.
+    reply.clearCookie(CART_COOKIE, { path: "/" });
+  } catch (error) {
+    request.log.error({ err: error }, "No se pudo fusionar el carrito de invitado");
+  }
 }
 
 export async function completeTwoFactor(
