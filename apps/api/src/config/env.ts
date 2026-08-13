@@ -85,6 +85,19 @@ const EnvSchema = z
     // Authenticator, 1Password...) junto al código de 6 dígitos.
     TOTP_ISSUER: z.string().min(1).default("LuCaLe"),
 
+    // Clave secreta de Stripe. Es la única credencial de pago que necesita el
+    // servidor: como usamos Checkout hospedado, la tarjeta se teclea en el
+    // dominio de Stripe y aquí no hace falta ninguna clave publicable.
+    //
+    // El prefijo distingue el entorno: sk_test_ mueve dinero de mentira,
+    // sk_live_ mueve dinero de verdad. Las guardas de abajo impiden confundirlos.
+    STRIPE_SECRET_KEY: z
+      .string()
+      .regex(
+        /^sk_(test|live)_/,
+        "debe empezar por sk_test_ o sk_live_ (si empieza por pk_ es la clave publicable, que no sirve aquí)",
+      ),
+
     // Orígenes permitidos por CORS. Se configuran en el Día 3, pero se validan desde
     // hoy: una allowlist explícita es más segura que un `origin: true` que acepta todo.
     WEB_ORIGIN: z.url(),
@@ -135,6 +148,32 @@ const EnvSchema = z
           message: "es la clave de ejemplo: genera una real con `openssl rand -hex 32`",
         });
       }
+    }
+
+    // ── Las dos guardas de Stripe ──────────────────────────────────────────
+    // Confundir el entorno de pago falla de las dos maneras, y las dos duelen:
+
+    // 1. Clave de prueba en producción: la tienda parece cobrar y no cobra.
+    //    Se descubre semanas después, al cuadrar la caja y ver cero ingresos
+    //    con el almacén vacío.
+    if (env.NODE_ENV === "production" && env.STRIPE_SECRET_KEY.startsWith("sk_test_")) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["STRIPE_SECRET_KEY"],
+        message:
+          "es una clave de PRUEBA y esto es producción: los pagos no cobrarían nada. Usa la sk_live_.",
+      });
+    }
+
+    // 2. Clave real fuera de producción: cada prueba con una tarjeta cobra de
+    //    verdad. Es el error caro, y por eso también se bloquea.
+    if (env.NODE_ENV !== "production" && env.STRIPE_SECRET_KEY.startsWith("sk_live_")) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["STRIPE_SECRET_KEY"],
+        message:
+          "es una clave REAL y esto no es producción: cobrarías dinero de verdad al probar. Usa la sk_test_.",
+      });
     }
   });
 

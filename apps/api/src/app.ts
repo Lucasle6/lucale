@@ -24,6 +24,7 @@ import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { cartRoutes } from "./modules/cart/cart.routes.js";
 import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
+import { checkoutRoutes } from "./modules/checkout/checkout.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   // Bajo Vitest los logs se silencian: la salida de un test debe ser el
@@ -127,6 +128,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       adminRoutes(instance, mailer);
       adminCatalogRoutes(instance, storage);
       cartRoutes(instance);
+      checkoutRoutes(instance);
       return Promise.resolve();
     },
     { prefix: "/v1" },

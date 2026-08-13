@@ -23,6 +23,9 @@ const cartInclude = {
               slug: true,
               status: true,
               deletedAt: true,
+              // La tasa de IVA se lee junto al precio y por el mismo motivo:
+              // ambos son del catálogo, y ninguno de los dos llega del cliente.
+              taxRateBps: true,
               images: { orderBy: { position: Prisma.SortOrder.asc }, take: 1 },
             },
           },

@@ -47,8 +47,12 @@ function opcionesDeCookie(): {
  *
  * Si hay sesión de cliente, es suyo. Si no, se usa (o se crea) el token de
  * invitado de la cookie.
+ *
+ * Se exporta porque el checkout tiene que resolver la identidad EXACTAMENTE
+ * igual: si usara otra lógica, alguien podría acabar pagando un carrito que no
+ * es el suyo, o encontrarse con que el suyo "no existe" al llegar a pagar.
  */
-async function resolverDueno(
+export async function resolverDueno(
   request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<CartOwner> {

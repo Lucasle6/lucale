@@ -96,6 +96,9 @@ async function crearProducto(overrides: Record<string, unknown> = {}) {
     payload: {
       name: "Prueba Maceta",
       slug: `prueba-maceta-${String(Date.now())}-${String(contador)}`,
+      // Obligatoria desde que el catálogo mezcla alimentos (0%) con utensilios
+      // (16%). Los casos que prueban la tasa en sí la sobrescriben.
+      taxRateBps: 1600,
       variants: [{ size: "Pequeña", sku: sku(), priceCents: 14990, stock: 5 }],
       ...overrides,
     },
@@ -130,6 +133,7 @@ describe("crear productos", () => {
       cookies: cookiesAdmin,
       payload: {
         name: `Prueba Lámpara Otoño ${String(Date.now())}`,
+        taxRateBps: 1600,
         variants: [{ size: "Única", sku: sku(), priceCents: 1000, stock: 1 }],
       },
     });

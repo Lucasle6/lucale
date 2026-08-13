@@ -86,6 +86,7 @@ function calcular(carrito: CartWithItems): Cart {
         unitPriceFormatted: formatMoney(unitPriceCents),
         lineTotalCents: total,
         lineTotalFormatted: formatMoney(total),
+        taxRateBps: item.variant.product.taxRateBps,
         availableStock: item.variant.stock,
         // Si el stock bajó desde que se añadió, se avisa en vez de fallar al
         // pagar. Mejor enterarse aquí que en el checkout.

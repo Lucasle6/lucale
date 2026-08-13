@@ -69,6 +69,10 @@ export async function createProduct(input: CreateProductInput, context: ActionCo
     slug,
     description: input.description ?? null,
     status: input.status,
+    // Se pasa explícitamente aunque la columna tenga valor por defecto: si se
+    // omitiera, Prisma escribiría 1600 en silencio y cada alimento se vendería
+    // con 16% sin que nada avisara.
+    taxRateBps: input.taxRateBps,
     ...(input.categoryId === undefined
       ? {}
       : { category: { connect: { id: input.categoryId } } }),
@@ -139,6 +143,9 @@ export async function updateProduct(
         ...(input.description === undefined ? {} : { description: input.description }),
         ...(input.status === undefined ? {} : { status: input.status }),
         ...(input.categoryId === undefined ? {} : { categoryId: input.categoryId }),
+        // Reclasificar afecta solo a ventas futuras: los pedidos ya emitidos
+        // llevan su propia tasa congelada en `OrderItem.taxRateBpsSnapshot`.
+        ...(input.taxRateBps === undefined ? {} : { taxRateBps: input.taxRateBps }),
       },
     );
 
@@ -330,6 +337,7 @@ export function toAdminProduct(producto: AdminProduct) {
     slug: producto.slug,
     description: producto.description,
     status: producto.status,
+    taxRateBps: producto.taxRateBps,
     categoryId: producto.categoryId,
     categoryName: producto.category?.name ?? null,
     variants: producto.variants.map((variante) => ({
