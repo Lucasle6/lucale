@@ -2,13 +2,12 @@
 
 E-commerce fullstack construido de cero. Proyecto de graduación.
 
-**Stack** — Next.js 15 · React 19 · TypeScript · Fastify 5 · PostgreSQL 17 · Prisma ·
+**Stack** — Next.js 16 · React 19 · TypeScript · Fastify 5 · PostgreSQL 17 · Prisma 6 ·
 Stripe · Tailwind v4
 
-**Estado** — Días 1–7 completados: monorepo y toolchain, 15 tablas con catálogo sembrado,
-API por capas con defensas HTTP, autenticación con 2FA, panel aislado con RBAC y auditoría,
-design system verificado contra WCAG, y CRUD de catálogo con subida de imágenes validada
-por contenido. 121 tests en verde. Siguiente: Día 8 — dashboard de administración.
+**Estado** — Días 1–8 completados. La tienda y el panel funcionan de extremo a extremo:
+se crea un producto desde el dashboard y se ve publicado en el catálogo público.
+121 tests en verde. Siguiente: Día 9 — tienda pública con SEO.
 
 ---
 
@@ -53,12 +52,22 @@ pnpm dev:web
 Queda en http://localhost:3000, y el escaparate del design system en
 http://localhost:3000/design-system.
 
+El panel de administración va aparte, en su propio puerto:
+
+```bash
+pnpm dev:admin
+```
+
+Queda en http://localhost:3001. Es una aplicación **independiente**: su código
+nunca llega al navegador de un cliente de la tienda.
+
 ### Comandos
 
 | Comando           | Qué hace                                                |
 | ----------------- | ------------------------------------------------------- |
 | `pnpm dev`        | Compila los packages y arranca la API en modo watch     |
 | `pnpm dev:web`    | Arranca la tienda (Next.js) en el puerto 3000           |
+| `pnpm dev:admin`  | Arranca el panel de administración en el puerto 3001    |
 | `pnpm typecheck`  | TypeScript en todos los workspaces                      |
 | `pnpm lint`       | ESLint con reglas que usan información de tipos         |
 | `pnpm format`     | Prettier sobre todo el repo                             |
