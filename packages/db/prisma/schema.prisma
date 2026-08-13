@@ -200,6 +200,21 @@ model Product {
   description String?
   status      ProductStatus @default(DRAFT) // invisible en la tienda hasta publicarlo
 
+  /// Tasa de IVA en PUNTOS BASE: 1600 = 16%, 0 = 0%.
+  ///
+  /// Va en el producto y no en la variante porque la tasa describe QUÉ ES la
+  /// cosa, no cuánto mide: una salsa de 250 ml y una de 500 ml tributan igual.
+  ///
+  /// Entero, en la misma disciplina que el dinero: 0.16 no es exacto en coma
+  /// flotante, y un impuesto mal redondeado es un descuadre que aparece meses
+  /// después.
+  ///
+  /// En México los productos destinados a la alimentación humana llevan tasa 0%
+  /// (art. 2-A de la Ley del IVA), mientras que los artículos de cocina que no
+  /// se comen —utensilios, tablas, frascos vacíos— llevan 16%. Un catálogo que
+  /// vende las dos cosas no puede tener una sola tasa global.
+  taxRateBps Int @default(1600)
+
   categoryId String?   @db.Uuid
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
@@ -389,6 +404,19 @@ model OrderItem {
   unitPriceCents Int
   quantity       Int
   lineTotalCents Int
+
+  /// La tasa de IVA que tenía el producto EN EL MOMENTO DE LA VENTA, en puntos
+  /// base. Se congela por la misma razón que el precio: si mañana reclasificas
+  /// el producto, o cambia la ley, esta factura debe seguir diciendo lo que dijo
+  /// hoy. Leer la tasa actual del catálogo reescribiría la historia fiscal.
+  taxRateBpsSnapshot Int @default(1600)
+
+  /// IVA contenido en `lineTotalCents`, ya calculado y congelado.
+  ///
+  /// Se guarda en vez de recalcularse al vuelo para que el importe declarado no
+  /// dependa de la versión del código que lea la fila. El redondeo de hoy es el
+  /// que vale para siempre.
+  taxCents Int @default(0)
 
   createdAt DateTime @default(now())
 
