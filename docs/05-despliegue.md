@@ -78,8 +78,8 @@ Imprime en pantalla, no escribe archivos. Cópialos al panel del proveedor.
 
 ```bash
 pnpm build            # los tres paquetes y las tres aplicaciones
-pnpm -r test          # 191 pruebas
-pnpm --filter @bodegon/e2e test   # 7 recorridos en navegador
+pnpm test             # 191 pruebas de API y aritmética
+pnpm test:e2e         # 7 recorridos en navegador (necesita el navegador instalado)
 ```
 
 ---

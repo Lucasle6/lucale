@@ -93,8 +93,12 @@ jobs:
       - name: Tipos
         run: pnpm -r typecheck
 
+      # `pnpm test` y no `pnpm -r test`: el recursivo incluye apps/e2e, que
+      # necesita un navegador instalado y dos servidores levantados. Eso es el
+      # job de abajo, y mezclarlos hacía fallar este por una dependencia que
+      # aquí no tiene por qué existir.
       - name: Pruebas
-        run: pnpm -r test
+        run: pnpm test
 
   auditoria:
     name: Dependencias vulnerables
