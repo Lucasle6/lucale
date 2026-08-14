@@ -1,6 +1,6 @@
 # Seguridad — LuCaLe
 
-Pediste "el estándar más alto". Esto es lo que eso significa en concreto: 20 controles,
+Pediste "el estándar más alto". Esto es lo que eso significa en concreto: 21 controles,
 cada uno con el ataque que detiene y el día en que se implementa.
 
 La referencia es **OWASP Top 10 (2021)** y las **OWASP Cheat Sheets**. No inventamos
@@ -179,6 +179,31 @@ bloquear un evento cuyo proceso murió a media faena.
 Stripe Checkout hospedado. Nunca vemos, transmitimos ni almacenamos un número de tarjeta.
 
 **Detiene:** todo el problema. Nos deja en PCI DSS SAQ-A, el nivel más liviano.
+
+### 21 · El entorno de pago no se puede confundir · Día 1, completado el Día 15
+
+Tres guardas cruzadas en la validación de entorno. Ninguna deja arrancar la API; no avisan, se
+niegan:
+
+| #   | Combinación                                    | Por qué se bloquea                          |
+| --- | ---------------------------------------------- | ------------------------------------------- |
+| 1   | producción + `sk_test_` sin `STRIPE_DEMO_MODE` | la tienda parece cobrar y no cobra          |
+| 2   | fuera de producción + `sk_live_`               | cada prueba con una tarjeta cobra de verdad |
+| 3   | `sk_live_` + `STRIPE_DEMO_MODE=true`           | cobra mientras anuncia que no cobra         |
+
+La tercera se añadió **después de que el fallo ocurriera de verdad**. Con las dos primeras, el
+primer despliegue quedó publicado apuntando a la clave real de Stripe mientras la consola
+imprimía en cada reinicio el cartel de "esta tienda no cobra". Se descubrió por el prefijo
+`cs_live_` de una URL de pago, no por ningún aviso nuestro.
+
+Lo importante del incidente no es la clave mal pegada —eso se arregla en un minuto— sino que el
+sistema **afirmaba con seguridad algo falso**. Un sistema que calla te hace ir a comprobarlo; uno
+que miente con confianza consigue que no lo compruebes.
+
+La guarda 3 no lleva condición de `NODE_ENV`, a diferencia de las otras dos: la contradicción es
+igual de mala en cualquier entorno. Hay una prueba que falla si alguien se la añade.
+
+**Detiene:** cobrar sin querer, no cobrar sin darse cuenta, y creerse el cartel.
 
 ---
 

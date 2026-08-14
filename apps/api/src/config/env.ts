@@ -29,7 +29,16 @@ dotenv.config({ path: path.join(repoRoot, ".env"), quiet: true });
 /** Prefijo de los secretos de ejemplo. Sirve para bloquearlos en producción. */
 const DEV_SECRET_PREFIX = "dev_only_";
 
-const EnvSchema = z
+/**
+ * Se exporta SOLO para poder probar las guardas cruzadas.
+ *
+ * El resto del código no debe usarlo: la única puerta a la configuración es
+ * `env`, ya validado. Este esquema es una función pura sobre un objeto, así que
+ * un test puede darle combinaciones inválidas y comprobar que las rechaza —
+ * cosa imposible mientras la validación solo ocurriera al importar el módulo,
+ * porque un fallo ahí mata el proceso de pruebas entero.
+ */
+export const EnvSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
@@ -181,8 +190,8 @@ const EnvSchema = z
       }
     }
 
-    // ── Las dos guardas de Stripe ──────────────────────────────────────────
-    // Confundir el entorno de pago falla de las dos maneras, y las dos duelen:
+    // ── Las tres guardas de Stripe ─────────────────────────────────────────
+    // Confundir el entorno de pago falla de varias maneras, y todas duelen:
 
     // 1. Clave de prueba en producción: la tienda parece cobrar y no cobra.
     //    Se descubre semanas después, al cuadrar la caja y ver cero ingresos
@@ -221,6 +230,31 @@ const EnvSchema = z
         path: ["STRIPE_SECRET_KEY"],
         message:
           "es una clave REAL y esto no es producción: cobrarías dinero de verdad al probar. Usa la sk_test_.",
+      });
+    }
+
+    // 3. Clave real con el modo demostración encendido: la contradicción.
+    //
+    //    STRIPE_DEMO_MODE declara "esta tienda no cobra". Una sk_live_ cobra.
+    //    Arrancar así hace que el cartel de abajo mienta en cada reinicio, y un
+    //    sistema que afirma con seguridad algo falso es peor que uno que calla:
+    //    con el segundo vas a comprobarlo, con el primero te fías.
+    //
+    //    Pasó de verdad. La tienda estuvo publicada apuntando a la clave real
+    //    mientras la consola anunciaba que no cobraba; se descubrió por el
+    //    prefijo `cs_live_` de una URL de pago, no por ningún aviso nuestro.
+    //
+    //    Va sin condición de NODE_ENV a propósito: la contradicción es igual de
+    //    mala en cualquier entorno, y la guarda 2 ya cubre el resto del caso
+    //    fuera de producción.
+    if (env.STRIPE_SECRET_KEY.startsWith("sk_live_") && env.STRIPE_DEMO_MODE) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["STRIPE_SECRET_KEY"],
+        message:
+          "es una clave REAL pero STRIPE_DEMO_MODE está encendido: la tienda cobraría " +
+          "de verdad mientras anuncia que no cobra. Pon la sk_test_, o quita " +
+          "STRIPE_DEMO_MODE si de verdad quieres cobrar.",
       });
     }
   });
