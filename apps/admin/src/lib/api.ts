@@ -33,6 +33,15 @@ export const API_URL = "/v1";
  */
 export const FILES_URL = process.env.NEXT_PUBLIC_FILES_URL ?? "http://localhost:4000";
 
+/**
+ * Dónde vive la TIENDA pública. La usa el enlace "ver en la tienda".
+ *
+ * Estuvo escrita a mano dentro de la vista como `http://localhost:3000`, así
+ * que en producción ese enlace llevaba al ordenador de quien lo pulsara. No
+ * fallaba de forma visible: simplemente no cargaba, y se achacaba al navegador.
+ */
+export const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL ?? "http://localhost:3000";
+
 export interface ApiError {
   code: string;
   message: string;

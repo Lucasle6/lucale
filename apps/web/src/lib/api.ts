@@ -35,6 +35,12 @@ const API_URL = `${API_ORIGIN}/v1`;
 /** Base sin /v1, para componer las URLs de las imágenes servidas. */
 export const FILES_URL = API_ORIGIN;
 
+/**
+ * Dominio público de la tienda. Sale de aquí y no de cada página que lo use:
+ * la configuración entra por una sola puerta, o deja de ser configuración.
+ */
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 /** Segundos que el catálogo se sirve de caché antes de refrescarse. */
 const REVALIDATE_SECONDS = 60;
 
