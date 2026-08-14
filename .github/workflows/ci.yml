@@ -31,7 +31,7 @@ jobs:
       # UNIQUE, transacciones y condiciones de carrera: con una base falsa no
       # probarían nada de eso.
       postgres:
-        image: postgres:17-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_USER: bodegon
           POSTGRES_PASSWORD: bodegon_dev_password
@@ -93,8 +93,12 @@ jobs:
       - name: Tipos
         run: pnpm -r typecheck
 
+      # `pnpm test` y no `pnpm -r test`: el recursivo incluye apps/e2e, que
+      # necesita un navegador instalado y dos servidores levantados. Eso es el
+      # job de abajo, y mezclarlos hacía fallar este por una dependencia que
+      # aquí no tiene por qué existir.
       - name: Pruebas
-        run: pnpm -r test
+        run: pnpm test
 
   auditoria:
     name: Dependencias vulnerables
@@ -134,7 +138,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_USER: bodegon
           POSTGRES_PASSWORD: bodegon_dev_password

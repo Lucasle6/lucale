@@ -5,11 +5,9 @@ import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { Footer } from "../../page";
 import { Header } from "../../../components/header";
-import { NotFound, getProduct, imageUrl } from "../../../lib/api";
+import { NotFound, SITE_URL, getProduct, imageUrl } from "../../../lib/api";
 import type { ProductDetail } from "../../../lib/api";
 import { SelectorTamano } from "./selector-tamano";
-
-const SITIO = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 async function cargar(slug: string): Promise<ProductDetail> {
   try {
@@ -44,12 +42,12 @@ export async function generateMetadata({
   return {
     title: producto.name,
     description: descripcion.slice(0, 160),
-    alternates: { canonical: `${SITIO}/productos/${producto.slug}` },
+    alternates: { canonical: `${SITE_URL}/productos/${producto.slug}` },
     openGraph: {
       title: producto.name,
       description: descripcion.slice(0, 200),
       type: "website",
-      url: `${SITIO}/productos/${producto.slug}`,
+      url: `${SITE_URL}/productos/${producto.slug}`,
       ...(producto.image === null
         ? {}
         : { images: [{ url: imageUrl(producto.image.url) }] }),
@@ -192,7 +190,7 @@ function DatosEstructurados({ producto }: { producto: ProductDetail }): ReactEle
       availability: variante.inStock
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
-      url: `${SITIO}/productos/${producto.slug}`,
+      url: `${SITE_URL}/productos/${producto.slug}`,
     })),
   };
 

@@ -1,25 +1,43 @@
 /**
- * Almacenamiento de archivos.
+ * Almacenamiento de archivos. Dos implementaciones tras una misma interfaz.
  *
- * Hoy guarda en disco; en la Semana 3 será Cloudflare R2. Los services
- * dependen de esta interfaz, no del proveedor, así que el cambio no toca la
- * lógica de negocio — el mismo patrón que el Mailer.
+ *   - disco local  → desarrollo y pruebas
+ *   - Vercel Blob  → producción
  *
- * Decisión de seguridad: el NOMBRE DEL ARCHIVO LO GENERAMOS NOSOTROS, nunca
- * viene del usuario. Si aceptáramos el suyo, alguien subiría algo llamado
- * `../../../etc/passwd` y escribiríamos fuera de la carpeta prevista. Se llama
- * path traversal, y se cierra no dándole al usuario ninguna influencia sobre
- * la ruta.
+ * Los services dependen de la interfaz, no del proveedor, así que cambiar de
+ * uno a otro no toca la lógica de negocio — el mismo patrón que el Mailer. Esa
+ * decisión se tomó el Día 7 y es aquí donde se cobra: el cambio entero cabe en
+ * este archivo más una línea en `app.ts`.
+ *
+ * POR QUÉ HIZO FALTA. El disco de un contenedor es efímero. En el plan gratuito
+ * de Render cada despliegue arranca de una imagen limpia, así que `uploads/` se
+ * va con el contenedor anterior y las fichas de producto se quedan con la
+ * imagen rota. Sin aviso: nadie falla, simplemente los archivos ya no están.
+ *
+ * Decisión de seguridad que se conserva en las dos: el NOMBRE DEL ARCHIVO LO
+ * GENERAMOS NOSOTROS, nunca viene del usuario. Si aceptáramos el suyo, alguien
+ * subiría algo llamado `../../../etc/passwd` y escribiríamos fuera de la carpeta
+ * prevista. Se llama path traversal, y se cierra no dándole al usuario ninguna
+ * influencia sobre la ruta.
  */
 
 import { randomUUID } from "node:crypto";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { del, put } from "@vercel/blob";
 import type { FastifyBaseLogger } from "fastify";
 
 export interface Storage {
-  /** Guarda el contenido y devuelve la URL pública. */
+  /**
+   * Guarda el contenido y devuelve la URL pública.
+   *
+   * OJO A LA FORMA DE LA URL: la implementación local devuelve una ruta
+   * RELATIVA (`/uploads/…`) y la de Vercel Blob una URL ABSOLUTA
+   * (`https://…public.blob.vercel-storage.com/…`). El frontend distingue las
+   * dos en `imageUrl()`; si alguna vez se añade otro proveedor, tiene que caer
+   * en uno de esos dos moldes o habrá que tocar también el frontend.
+   */
   save(buffer: Buffer, extension: string): Promise<string>;
   /** Borra un archivo por su URL. No lanza si ya no existe. */
   remove(url: string): Promise<void>;
@@ -58,6 +76,54 @@ export function createLocalStorage(log: FastifyBaseLogger): Storage {
         // estuviera.
         log.warn({ err: error, url }, "No se pudo borrar el archivo subido");
       }
+    },
+  };
+}
+
+/**
+ * Almacén de objetos (Vercel Blob). El que se usa en producción.
+ *
+ * Las imágenes viven fuera del proceso que las sirve, que es la propiedad que
+ * el disco local no puede dar: sobreviven a despliegues, reinicios y a que el
+ * contenedor se duerma.
+ *
+ * Se pasa el token explícitamente en vez de dejar que el SDK lo lea de
+ * `process.env`. Cuesta un argumento y a cambio esta función no depende de
+ * ninguna variable global: se puede construir con un token de prueba sin
+ * ensuciar el entorno, y la validación de `env.ts` sigue siendo la única
+ * puerta por la que entra la configuración.
+ */
+export function createBlobStorage(token: string): Storage {
+  /** Carpeta dentro del almacén. Deja sitio a otros usos sin mezclarlo todo. */
+  const CARPETA = "productos";
+
+  return {
+    async save(buffer, extension) {
+      const { url } = await put(`${CARPETA}/${randomUUID()}.${extension}`, buffer, {
+        // Público a propósito: son fotos de un catálogo abierto. Un almacén
+        // privado obligaría a que CADA imagen pasara por nuestro servidor para
+        // ser reenviada, convirtiendo un acierto de CDN en trabajo y latencia.
+        access: "public",
+        token,
+        // `addRandomSuffix` se queda en su valor por defecto (false) A
+        // PROPÓSITO. El nombre ya es un UUID nuestro, así que no hay colisión
+        // posible; y si alguna vez la hubiera, el SDK lanza en vez de
+        // sobrescribir en silencio. Un error ruidoso es mejor que una imagen
+        // que desaparece sin que nadie se entere.
+      });
+
+      return url;
+    },
+
+    async remove(url) {
+      // Aquí NO hace falta el `basename` defensivo de la versión local: no se
+      // construye ninguna ruta de sistema de archivos con esto. La URL se manda
+      // tal cual al SDK, y una manipulada simplemente no corresponde a ningún
+      // objeto de nuestro almacén.
+      //
+      // `del` tampoco lanza si el objeto ya no existe, que es exactamente el
+      // contrato que pide la interfaz: el objetivo era que no estuviera.
+      await del(url, { token });
     },
   };
 }

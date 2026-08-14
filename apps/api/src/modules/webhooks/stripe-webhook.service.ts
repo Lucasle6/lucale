@@ -95,6 +95,14 @@ export async function handleStripeEvent(
     return { received: true, resultado: "duplicado" };
   }
 
+  if (registro.estado === "en-vuelo") {
+    // Otra entrega del mismo evento lo está procesando en este instante. Se
+    // responde 200 para que Stripe lo dé por entregado: el trabajo se está
+    // haciendo, solo que no en esta petición.
+    log.info({ eventoStripe: evento.id }, "Evento ya en proceso por otra entrega");
+    return { received: true, resultado: "duplicado" };
+  }
+
   // ── 3. Aplicarlo ───────────────────────────────────────────────────────────
   try {
     // Se comprueban los dos tipos explícitamente, en vez de un `else`, porque

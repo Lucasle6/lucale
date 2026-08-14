@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge, Button } from "@bodegon/ui";
+import { urlDeImagen } from "@bodegon/shared";
 import type { CartLine } from "@bodegon/shared";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -158,7 +159,7 @@ function Miniatura({ linea, base }: { linea: CartLine; base: string }): ReactEle
   }
   return (
     <img
-      src={`${base}${linea.imageUrl}`}
+      src={urlDeImagen(base, linea.imageUrl)}
       alt={linea.productName}
       className="size-20 shrink-0 rounded-md object-cover"
     />

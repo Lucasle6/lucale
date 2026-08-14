@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { apiServer } from "../../../../lib/api-server";
+import { STORE_URL } from "../../../../lib/api";
 import { ProductForm } from "../product-form";
 import type { ProductoExistente } from "../product-form";
 
@@ -32,7 +33,7 @@ export default async function EditarProductoPage({
           <h1 className="text-3xl text-ink-900">{producto.name}</h1>
           {producto.status === "ACTIVE" ? (
             <a
-              href={`http://localhost:3000/productos/${producto.slug}`}
+              href={`${STORE_URL}/productos/${producto.slug}`}
               target="_blank"
               rel="noreferrer"
               className="text-sm text-brand-700 hover:underline"

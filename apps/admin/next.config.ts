@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+/** Origen de la API, solo para el servidor. Sin NEXT_PUBLIC_ a propósito. */
+const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:4000";
+
 const config: NextConfig = {
   transpilePackages: ["@bodegon/ui", "@bodegon/shared"],
   poweredByHeader: false,
@@ -32,6 +35,24 @@ const config: NextConfig = {
         ],
       },
     ];
+  },
+
+  /**
+   * El navegador solo habla con este dominio; la API queda detrás.
+   *
+   * Sin esto, la cookie de sesión que pone la API sería "de terceros" para el
+   * navegador y se descartaría: el panel no podría mantener la sesión abierta.
+   * Ver la explicación larga en apps/web/next.config.ts.
+   */
+  // Devuelve la promesa en vez de ser `async` sin `await`: Next espera una
+  // promesa, y así no hace falta silenciar ninguna regla del linter.
+  rewrites() {
+    return Promise.resolve([
+      {
+        source: "/v1/:path*",
+        destination: `${API_ORIGIN}/v1/:path*`,
+      },
+    ]);
   },
 };
 

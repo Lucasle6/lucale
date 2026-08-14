@@ -10,8 +10,20 @@ export type RegistroDeEvento =
   | { estado: "nuevo"; id: string }
   /** Ya lo procesamos con éxito: no hacer nada. */
   | { estado: "ya-procesado" }
-  /** Lo vimos antes pero falló: Stripe reintenta y volvemos a intentarlo. */
+  /** Otra entrega lo está procesando AHORA MISMO: no duplicar el trabajo. */
+  | { estado: "en-vuelo" }
+  /** Lo vimos antes y falló: Stripe reintenta y volvemos a intentarlo. */
   | { estado: "reintento"; id: string };
+
+/**
+ * Cuánto puede estar un evento "en vuelo" antes de darlo por abandonado.
+ *
+ * Si el proceso muere entre insertar la fila y marcar el resultado, esa fila se
+ * queda sin `processedAt` y sin `error` para siempre. Pasado este tiempo se
+ * asume que nadie lo está procesando y se permite reintentarlo, para que un
+ * reinicio en mal momento no deje un pago sin aplicar.
+ */
+const MINUTOS_ANTES_DE_DAR_POR_ABANDONADO = 5;
 
 /**
  * Registra el evento, y de paso decide si toca procesarlo.
@@ -55,12 +67,37 @@ export async function registrarEvento(evento: {
 
     const existente = await prisma.webhookEvent.findUniqueOrThrow({
       where: { externalId: evento.externalId },
-      select: { id: true, processedAt: true },
+      select: { id: true, processedAt: true, error: true, createdAt: true },
     });
 
-    return existente.processedAt === null
-      ? { estado: "reintento", id: existente.id }
-      : { estado: "ya-procesado" };
+    if (existente.processedAt !== null) return { estado: "ya-procesado" };
+
+    /**
+     * PROCESADO, FALLIDO Y EN VUELO SON TRES COSAS DISTINTAS.
+     *
+     * La primera versión solo miraba `processedAt`, y trataba cualquier fila sin
+     * él como un intento fallido que había que repetir. Eso abría una ventana:
+     * tres entregas simultáneas del mismo evento veían `processedAt` en null
+     * —porque la primera aún no había terminado— y las tres procesaban. El
+     * inventario se descontaba tres veces.
+     *
+     * Lo cazó la integración continua, no las pruebas locales: aquí la primera
+     * entrega terminaba antes de que las otras miraran, y en un runner más
+     * lento no.
+     *
+     * `error` es lo que distingue "falló" de "está ocurriendo ahora": solo se
+     * escribe cuando un intento se cayó de verdad.
+     */
+    if (existente.error !== null) return { estado: "reintento", id: existente.id };
+
+    const abandonadoDesde = new Date(
+      Date.now() - MINUTOS_ANTES_DE_DAR_POR_ABANDONADO * 60 * 1000,
+    );
+    if (existente.createdAt < abandonadoDesde) {
+      return { estado: "reintento", id: existente.id };
+    }
+
+    return { estado: "en-vuelo" };
   }
 }
 
