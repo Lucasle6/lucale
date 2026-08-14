@@ -23,9 +23,15 @@ function vigilarConsola(page: Page): string[] {
     const texto = mensaje.text();
     if (
       mensaje.type() === "error" &&
-      // El aviso de HMR aparece al arrancar el servidor de desarrollo y no
-      // dice nada sobre la aplicación.
-      !texto.includes("_next/hmr")
+      // Ruido del servidor de desarrollo, no de la aplicación:
+      //
+      //  · el aviso de HMR aparece al arrancar
+      //  · "destination stream closed early" salta cuando la prueba navega a
+      //    otra página antes de que termine una respuesta en streaming. Una
+      //    persona no lo provoca porque no cambia de página en 40 ms; hizo
+      //    fallar esta prueba una vez de cada tres.
+      !texto.includes("_next/hmr") &&
+      !texto.includes("destination stream closed early")
     ) {
       problemas.push(texto);
     }

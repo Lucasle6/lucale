@@ -1,0 +1,112 @@
+# Despliegue de la API en Render.
+#
+# Render lee este archivo al conectar el repositorio y configura el servicio
+# solo. Está aquí, versionado, y no rellenado a mano en su panel, porque un
+# despliegue que solo existe en la interfaz de alguien no se puede repetir ni
+# revisar: cuando algo cambie, nadie sabrá qué había antes.
+#
+# Los secretos NO están aquí. Van marcados con `sync: false`, que hace que
+# Render los pida al crear el servicio y los guarde cifrados en su lado.
+
+services:
+  - type: web
+    name: lucale-api
+    runtime: node
+    plan: free
+    # Oregón es la región gratuita más cercana a México de las disponibles.
+    region: oregon
+    healthCheckPath: /health
+
+    # El monorepo se instala entero y luego se compila solo lo necesario:
+    # los paquetes compartidos primero —la API los importa compilados— y
+    # después la API.
+    # Si corepack vuelve a fallar, la alternativa que no depende de él es
+    # sustituir `corepack enable` por `npm i -g pnpm@9.15.9`. Es más tosco pero
+    # no pregunta nada a nadie.
+    # `--prod=false` es OBLIGATORIO aquí, no una preferencia.
+    #
+    # NODE_ENV=production hace que pnpm se salte las devDependencies. Pero
+    # typescript, tsx y prisma SON devDependencies: sin ellas no hay nada con
+    # qué compilar. La bandera fuerza a instalarlas para construir; lo que
+    # acaba corriendo en producción sigue siendo solo el JavaScript compilado.
+    buildCommand: >-
+      corepack enable &&
+      pnpm install --frozen-lockfile --prod=false &&
+      pnpm --filter @bodegon/db generate &&
+      pnpm build:packages &&
+      pnpm --filter @bodegon/api build
+
+    startCommand: pnpm --filter @bodegon/api start
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # ── LA VARIABLE QUE SE OLVIDA Y CUESTA UNA TARDE ──────────────────────
+      #
+      # Por defecto la API escucha en 127.0.0.1, que significa "solo acepto
+      # conexiones de mi propia máquina". Es lo correcto en desarrollo: evita
+      # exponer tu API a toda la red local sin querer.
+      #
+      # Dentro de un contenedor eso hace que el servicio arranque, se declare
+      # sano, y no responda a NADIE desde fuera. El fallo no dice "te falta
+      # HOST": dice que el health check no contesta, y te vuelves loco mirando
+      # el código.
+      - key: HOST
+        value: 0.0.0.0
+
+      # Render inyecta PORT por su cuenta; la validación de entorno lo recoge.
+
+      - key: LOG_LEVEL
+        value: info
+
+      # Explícita, no heredada. El package.json declara ">=22", que es un rango
+      # y no una versión: dejar que la plataforma elija cuál significa que un
+      # día cambie sola y algo deje de compilar sin que hayas tocado nada.
+      - key: NODE_VERSION
+        value: "22"
+
+      # Corepack pide confirmación antes de descargar pnpm. En una terminal le
+      # dirías que sí; en un build automatizado no hay nadie que conteste y el
+      # proceso muere con un ELIFECYCLE sin más explicación.
+      #
+      # Costó un despliegue fallido descubrirlo, y el log no lo dice: solo se ve
+      # la línea del "!" pidiendo permiso y, justo después, el fallo.
+      - key: COREPACK_ENABLE_DOWNLOAD_PROMPT
+        value: "0"
+
+      # ── Se piden al crear el servicio ─────────────────────────────────────
+      # `sync: false` = Render los pregunta y los guarda cifrados.
+
+      # De Neon, con ?sslmode=require al final.
+      - key: DATABASE_URL
+        sync: false
+
+      # Genera los cinco con:  pnpm secretos
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: PASSWORD_PEPPER
+        sync: false
+      - key: COOKIE_SECRET
+        sync: false
+      - key: TOTP_ENCRYPTION_KEY
+        sync: false
+
+      # Claves de PRUEBA de Stripe. Con STRIPE_DEMO_MODE en true, la validación
+      # de entorno las acepta en producción y la API avisa en cada arranque de
+      # que esta tienda no cobra de verdad.
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_DEMO_MODE
+        value: "true"
+
+      # Los dominios de Vercel. Se rellenan DESPUÉS de desplegar el frontend:
+      # hasta entonces no se conocen, y el CORS los necesita exactos.
+      - key: WEB_ORIGIN
+        sync: false
+      - key: ADMIN_ORIGIN
+        sync: false

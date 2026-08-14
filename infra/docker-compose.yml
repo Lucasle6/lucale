@@ -2,7 +2,10 @@ name: bodegon-de-jose
 
 services:
   postgres:
-    image: postgres:17-alpine
+    # 18 para igualar producción (Neon). Desarrollar contra una versión y
+    # desplegar en otra significa probar algo distinto de lo que envías, y el
+    # día que aparezca una diferencia la buscarías en tu código.
+    image: postgres:18-alpine
     container_name: bodegon-postgres
     restart: unless-stopped
     environment:
