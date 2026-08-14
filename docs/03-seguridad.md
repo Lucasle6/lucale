@@ -155,13 +155,24 @@ subtotal, envío, impuestos y total.
 **Detiene:** manipulación de precios. Si el importe llega desde el navegador, alguien
 comprará tu catálogo a un centavo. Es la vulnerabilidad más cara de un e-commerce.
 
-### 19 · Firma e idempotencia de webhooks · Día 11–12
+### 19 · Firma e idempotencia de webhooks · Día 11–12, corregido el Día 15
 
 Verificación de firma con el secreto de Stripe, sobre el **cuerpo crudo** (no parseado), y
 tabla `WebhookEvent` con `externalId` único.
 
 **Detiene:** que cualquiera falsifique un "pago confirmado" con un POST, y que un reenvío
 legítimo de Stripe duplique la orden.
+
+**Corrección del Día 15.** La primera versión trataba cualquier fila sin `processedAt`
+como un intento fallido que había que repetir. Eso dejaba una ventana: tres entregas
+simultáneas veían `processedAt` en null —porque la primera aún no había terminado— y las
+tres procesaban, descontando el inventario tres veces.
+
+Lo cazó la **integración continua en su primera ejecución real**, no las pruebas locales:
+aquí la primera entrega acababa antes de que las otras miraran; en un runner más lento,
+no. Ahora se distinguen tres estados —procesado, fallido y en vuelo— usando la columna
+`error` para saber si un intento se cayó de verdad, con un plazo de 5 minutos para no
+bloquear un evento cuyo proceso murió a media faena.
 
 ### 20 · Datos de tarjeta fuera de nuestro alcance · Día 11
 

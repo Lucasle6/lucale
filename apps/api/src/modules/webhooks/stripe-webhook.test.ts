@@ -329,6 +329,85 @@ describe("el mismo evento entregado varias veces", () => {
     expect(despues.status).toBe(OrderStatus.PAID);
   });
 
+  it("no reprocesa un evento que otra entrega tiene EN VUELO", async () => {
+    // Determinista, a diferencia de la prueba de concurrencia de arriba: en vez
+    // de confiar en el reloj, se deja la fila exactamente en el estado que
+    // produce una entrega a medio procesar — sin processedAt y sin error — y se
+    // entrega el evento otra vez.
+    //
+    // Esta es la situación que hizo fallar la CI: la primera versión trataba
+    // "sin processedAt" como "el intento anterior falló", así que las entregas
+    // simultáneas se procesaban todas y el stock se descontaba tres veces.
+    const orden = await pedidoPendiente(2);
+    const eventId = `evt_en_vuelo_${String(Date.now())}`;
+
+    await prisma.webhookEvent.create({
+      data: {
+        provider: "stripe",
+        externalId: eventId,
+        type: "checkout.session.completed",
+        payload: {},
+        // Ni procesado ni fallido: alguien lo está haciendo ahora mismo.
+        processedAt: null,
+        error: null,
+      },
+    });
+
+    const cuerpo = cuerpoDeEvento({
+      eventId,
+      type: "checkout.session.completed",
+      orderId: orden.id,
+      amountTotal: orden.totalCents,
+    });
+
+    const response = await entregar(cuerpo);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json<{ resultado: string }>().resultado).toBe("duplicado");
+
+    // Y no tocó nada: ni el pedido ni el inventario.
+    const despues = await prisma.order.findUniqueOrThrow({ where: { id: orden.id } });
+    expect(despues.status).toBe(OrderStatus.PENDING);
+
+    const variante = await prisma.productVariant.findUniqueOrThrow({
+      where: { id: variantId },
+    });
+    expect(variante.stock).toBe(STOCK_INICIAL);
+  });
+
+  it("SÍ reprocesa un evento cuyo intento anterior falló", async () => {
+    // El otro lado de la moneda: si se guardó un error, el intento anterior se
+    // cayó de verdad y el reintento de Stripe debe volver a aplicarlo. Sin
+    // esto, un fallo transitorio dejaría un pago sin aplicar para siempre.
+    const orden = await pedidoPendiente(2);
+    const eventId = `evt_fallido_${String(Date.now())}`;
+
+    await prisma.webhookEvent.create({
+      data: {
+        provider: "stripe",
+        externalId: eventId,
+        type: "checkout.session.completed",
+        payload: {},
+        processedAt: null,
+        error: "la base de datos no respondió",
+      },
+    });
+
+    const cuerpo = cuerpoDeEvento({
+      eventId,
+      type: "checkout.session.completed",
+      orderId: orden.id,
+      amountTotal: orden.totalCents,
+    });
+
+    const response = await entregar(cuerpo);
+
+    expect(response.json<{ resultado: string }>().resultado).toBe("procesado");
+
+    const despues = await prisma.order.findUniqueOrThrow({ where: { id: orden.id } });
+    expect(despues.status).toBe(OrderStatus.PAID);
+  });
+
   it("aguanta tres entregas SIMULTÁNEAS del mismo evento", async () => {
     const orden = await pedidoPendiente(2);
     const cuerpo = cuerpoDeEvento({
