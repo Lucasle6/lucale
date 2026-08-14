@@ -1,6 +1,6 @@
 # Seguridad — LuCaLe
 
-Pediste "el estándar más alto". Esto es lo que eso significa en concreto: 21 controles,
+Pediste "el estándar más alto". Esto es lo que eso significa en concreto: 22 controles,
 cada uno con el ataque que detiene y el día en que se implementa.
 
 La referencia es **OWASP Top 10 (2021)** y las **OWASP Cheat Sheets**. No inventamos
@@ -204,6 +204,26 @@ La guarda 3 no lleva condición de `NODE_ENV`, a diferencia de las otras dos: la
 igual de mala en cualquier entorno. Hay una prueba que falla si alguien se la añade.
 
 **Detiene:** cobrar sin querer, no cobrar sin darse cuenta, y creerse el cartel.
+
+### 22 · Los archivos subidos no viven en el proceso que los sirve · Día 15
+
+En producción las imágenes van a un almacén de objetos (Vercel Blob), nunca al disco del
+contenedor. Una cuarta guarda impide arrancar en producción sin él.
+
+**Detiene:** dos cosas distintas.
+
+La primera es pérdida de datos: el sistema de archivos de un contenedor es efímero, así que
+guardar ahí significa perder cada imagen en el siguiente despliegue —en silencio, porque no
+falla nada: los archivos simplemente dejan de estar.
+
+La segunda es de seguridad, y es la razón por la que un almacén separado era lo correcto desde
+el principio: servir contenido subido por usuarios **desde el mismo origen que la aplicación**
+permite que un archivo malicioso herede sus permisos —cookies, almacenamiento local— si el
+navegador llegara a interpretarlo en vez de mostrarlo. En otro dominio, ese archivo no tiene
+acceso a nada nuestro aunque se interprete.
+
+En desarrollo se sigue usando el disco, con `nosniff` y una CSP `default-src 'none'` sobre esa
+ruta como compensación.
 
 ---
 

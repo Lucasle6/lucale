@@ -19,7 +19,7 @@ import { registerSecurity } from "./plugins/security.js";
 import { registerSwagger } from "./plugins/swagger.js";
 import fastifyStatic from "@fastify/static";
 import { createLoggerMailer } from "./lib/mailer.js";
-import { UPLOAD_DIR, createLocalStorage } from "./lib/storage.js";
+import { UPLOAD_DIR, createBlobStorage, createLocalStorage } from "./lib/storage.js";
 import { adminCatalogRoutes } from "./modules/admin/admin-catalog.routes.js";
 import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
@@ -111,26 +111,43 @@ export async function buildApp(opciones: OpcionesApp = {}): Promise<FastifyInsta
     }),
   );
 
-  // El envío de correos y el almacenamiento se inyectan: hoy escriben en el
-  // log y en disco, en la Semana 3 serán Resend y Cloudflare R2. Los services
-  // dependen de la interfaz, no del proveedor.
+  // El envío de correos y el almacenamiento se inyectan: los services dependen
+  // de la interfaz, no del proveedor. El correo todavía escribe en el log.
   const mailer = createLoggerMailer(app.log);
-  const storage = createLocalStorage(app.log);
 
   /**
-   * Sirve las imágenes subidas, solo en desarrollo.
+   * Almacén de imágenes: objetos si hay token, disco si no.
    *
-   * En producción los archivos los sirve Cloudflare R2 desde un dominio
-   * distinto, y eso NO es un detalle de infraestructura: servir contenido
-   * subido por usuarios desde el mismo dominio que la aplicación permite que
-   * un archivo malicioso herede sus permisos —cookies, almacenamiento local—
-   * si el navegador llegara a interpretarlo.
+   * La condición es la PRESENCIA DEL TOKEN y no `isProduction`, aunque en
+   * producción vengan a ser lo mismo por la guarda de `env.ts`. Así se puede
+   * probar el almacén de objetos en local sin fingir que estamos en
+   * producción —lo que activaría de paso HSTS, cookies `__Host-` y todo lo
+   * demás—, y la condición dice lo que de verdad decide.
+   */
+  // El token se copia a una constante local en vez de leerse dos veces de
+  // `env`: TypeScript no puede estrechar el tipo de una propiedad a través de
+  // una variable booleana intermedia, así que sin esto `createBlobStorage`
+  // recibiría `string | undefined`.
+  const tokenDelAlmacen = env.BLOB_READ_WRITE_TOKEN;
+  const usaAlmacenDeObjetos = tokenDelAlmacen !== undefined;
+  const storage = usaAlmacenDeObjetos
+    ? createBlobStorage(tokenDelAlmacen)
+    : createLocalStorage(app.log);
+
+  /**
+   * Sirve las imágenes subidas. Solo cuando se guardan en disco: con el almacén
+   * de objetos las sirve Vercel desde su propio dominio y esta ruta no existe.
+   *
+   * Que las sirva OTRO dominio no es un detalle de infraestructura: servir
+   * contenido subido por usuarios desde el mismo dominio que la aplicación
+   * permite que un archivo malicioso herede sus permisos —cookies,
+   * almacenamiento local— si el navegador llegara a interpretarlo.
    *
    * Aquí se compensa con dos cabeceras: nosniff impide que el navegador
-   * "adivine" el tipo, y Content-Disposition fuerza descarga en vez de
-   * interpretación para cualquier cosa que no sea una imagen reconocida.
+   * "adivine" el tipo, y una CSP `default-src 'none'` deja sin efecto cualquier
+   * cosa que llegara a interpretarse.
    */
-  if (!isProduction) {
+  if (!usaAlmacenDeObjetos) {
     await app.register(fastifyStatic, {
       root: UPLOAD_DIR,
       prefix: "/uploads/",

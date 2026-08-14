@@ -1,5 +1,6 @@
 import "server-only";
 
+import { urlDeImagen } from "@bodegon/shared";
 import type { Cart } from "@bodegon/shared";
 import { cookies } from "next/headers";
 
@@ -124,9 +125,15 @@ export function listCategories(): Promise<{ items: Category[] }> {
   return pedir("/categories", 300);
 }
 
-/** Compone la URL absoluta de una imagen servida por la API. */
+/**
+ * Compone la URL absoluta de una imagen servida por la API.
+ *
+ * La regla vive en `@bodegon/shared` porque el carrito la necesita desde un
+ * componente de CLIENTE, que no puede importar este módulo: aquí se lee
+ * `process.env.API_ORIGIN`, que solo existe en el servidor.
+ */
 export function imageUrl(url: string): string {
-  return `${FILES_URL}${url}`;
+  return urlDeImagen(FILES_URL, url);
 }
 
 // ─── Carrito ─────────────────────────────────────────────────────────────────

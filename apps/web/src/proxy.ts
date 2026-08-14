@@ -21,6 +21,19 @@ import type { NextRequest } from "next/server";
  * llamaba `middleware.ts`.
  */
 
+/**
+ * Dominio del almacén de imágenes (Vercel Blob).
+ *
+ * Es un comodín porque cada almacén recibe un subdominio propio e imprevisible
+ * (`abc123.public.blob.vercel-storage.com`), así que no se puede escribir a
+ * mano sin acoplar la CSP a la cuenta concreta. El comodín solo abarca ese
+ * dominio y solo para IMÁGENES: no autoriza scripts ni conexiones.
+ *
+ * Sin esto el navegador bloquea todas las fotos del catálogo aunque el resto
+ * funcione, y el único rastro es una violación de CSP en la consola.
+ */
+const ALMACEN_DE_IMAGENES = "https://*.public.blob.vercel-storage.com";
+
 /** Origen de la API, que corre en otro puerto (y en producción, en otro dominio). */
 function origenDeLaApi(): string {
   const url = process.env.NEXT_PUBLIC_FILES_URL ?? "http://localhost:4000";
@@ -57,7 +70,7 @@ export function proxy(request: NextRequest): NextResponse {
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${enDesarrollo ? " 'unsafe-eval'" : ""};
     style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: ${api};
+    img-src 'self' blob: data: ${api} ${ALMACEN_DE_IMAGENES};
     font-src 'self';
     connect-src 'self'${enDesarrollo ? " ws: wss:" : ""};
     object-src 'none';

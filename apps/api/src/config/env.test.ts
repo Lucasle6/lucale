@@ -35,12 +35,27 @@ const SK_PRUEBA = "sk_test_ficticia_de_prueba";
  * él. Construir un entorno completo a mano aquí obligaría a tocar este archivo
  * cada vez que se añada una variable nueva, y la prueba se pudriría sola.
  */
-function problemasEnLaClave(overrides: Record<string, string>): string[] {
-  const resultado = EnvSchema.safeParse({ ...process.env, ...overrides });
+function problemasEn(
+  variable: string,
+  overrides: Record<string, string | undefined>,
+): string[] {
+  const entorno: Record<string, string | undefined> = { ...process.env, ...overrides };
+  // `undefined` en los overrides significa "esta variable NO está definida",
+  // que es distinto de "vale la cadena vacía" y es justo lo que hay que poder
+  // simular para probar una variable opcional.
+  for (const [clave, valor] of Object.entries(overrides)) {
+    if (valor === undefined) delete entorno[clave];
+  }
+
+  const resultado = EnvSchema.safeParse(entorno);
   if (resultado.success) return [];
   return resultado.error.issues
-    .filter((issue) => issue.path.join(".") === "STRIPE_SECRET_KEY")
+    .filter((issue) => issue.path.join(".") === variable)
     .map((issue) => issue.message);
+}
+
+function problemasEnLaClave(overrides: Record<string, string>): string[] {
+  return problemasEn("STRIPE_SECRET_KEY", overrides);
 }
 
 describe("guarda 1: clave de prueba en producción", () => {
@@ -118,6 +133,51 @@ describe("guarda 3: clave real con el modo demostración encendido", () => {
         NODE_ENV: "production",
         STRIPE_SECRET_KEY: SK_REAL,
         STRIPE_DEMO_MODE: "false",
+      }),
+    ).toEqual([]);
+  });
+});
+
+describe("guarda 4: almacén de imágenes en producción", () => {
+  const TOKEN = "token-ficticio-de-almacen";
+
+  it("no deja arrancar en producción sin almacén de objetos", () => {
+    const problemas = problemasEn("BLOB_READ_WRITE_TOKEN", {
+      NODE_ENV: "production",
+      BLOB_READ_WRITE_TOKEN: undefined,
+    });
+
+    expect(problemas).toHaveLength(1);
+    expect(problemas[0]).toContain("desaparecen en el siguiente despliegue");
+  });
+
+  it("arranca en producción cuando el almacén está configurado", () => {
+    expect(
+      problemasEn("BLOB_READ_WRITE_TOKEN", {
+        NODE_ENV: "production",
+        BLOB_READ_WRITE_TOKEN: TOKEN,
+      }),
+    ).toEqual([]);
+  });
+
+  /**
+   * En desarrollo el disco local es lo correcto: no hay que montar un almacén
+   * remoto para trabajar sin conexión, y el contenedor no se recrea.
+   */
+  it("fuera de producción no exige nada: el disco local es legítimo ahí", () => {
+    expect(
+      problemasEn("BLOB_READ_WRITE_TOKEN", {
+        NODE_ENV: "development",
+        BLOB_READ_WRITE_TOKEN: undefined,
+      }),
+    ).toEqual([]);
+  });
+
+  it("acepta el almacén también fuera de producción, para poder probarlo", () => {
+    expect(
+      problemasEn("BLOB_READ_WRITE_TOKEN", {
+        NODE_ENV: "development",
+        BLOB_READ_WRITE_TOKEN: TOKEN,
       }),
     ).toEqual([]);
   });

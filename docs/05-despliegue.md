@@ -18,7 +18,7 @@ Lo que hay desplegado hoy, con los dominios reales:
                                  │  para el navegador: ver abajo)
                     ┌────────────▼─────────────┐
                     │  Render · API            │  Fastify
-                    │  lucale-api.onrender.com │  + uploads/ en disco
+                    │  lucale-api.onrender.com │
                     └────────────┬─────────────┘
                                  │
                        ┌─────────▼─────────┐
@@ -32,10 +32,14 @@ Lo que hay desplegado hoy, con los dominios reales:
                     └──────────────────────────┘
 ```
 
-Las imágenes **no** están en un almacenamiento aparte: las sirve la propia API
-desde `uploads/` con `@fastify/static`. Funciona, pero tiene un límite serio en
-el plan gratuito de Render — está anotado al final, en lo que este despliegue no
-cubre.
+Las imágenes viven en **Vercel Blob**, fuera del proceso que sirve la tienda. Es
+una decisión de supervivencia, no de rendimiento: el disco de un contenedor de
+Render es efímero, así que guardarlas junto a la API significaba perderlas en
+cada despliegue, sin que fallara nada ni avisara nadie.
+
+En desarrollo se siguen guardando en `uploads/` y las sirve la propia API. Lo
+elige la presencia de `BLOB_READ_WRITE_TOKEN`, y en producción es obligatoria:
+la API no arranca sin ella.
 
 **Por qué el panel es otra aplicación y no una ruta.** Fue un requisito desde el
 primer día: que un cliente no vea "siquiera nada relacionado con el dashboard".
@@ -86,7 +90,7 @@ Imprime en pantalla, no escribe archivos. Cópialos al panel del proveedor.
 
 ```bash
 pnpm build            # los tres paquetes y las tres aplicaciones
-pnpm test             # 201 pruebas: 182 de la API y 19 de aritmética de dinero
+pnpm test             # 211 pruebas: 186 de la API y 25 de aritmética y URLs
 pnpm test:e2e         # 7 recorridos en navegador (necesita el navegador instalado)
 ```
 
@@ -133,12 +137,13 @@ PASSWORD_PEPPER=...        COOKIE_SECRET=...
 TOTP_ENCRYPTION_KEY=...
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
+BLOB_READ_WRITE_TOKEN=...       # Vercel → Storage → el almacén → .env.local
 WEB_ORIGIN=https://lucale.mx
 ADMIN_ORIGIN=https://admin.lucale.mx
 ```
 
 La validación de entorno **rechaza el arranque** si falta alguna, si dos secretos
-coinciden, o si el entorno de pago se contradice. Son tres guardas (control 21 de
+coinciden, o si la configuración se contradice (controles 21 y 22 de
 [`03-seguridad.md`](03-seguridad.md)):
 
 | Combinación                                    | Por qué no arranca                          |
@@ -146,9 +151,17 @@ coinciden, o si el entorno de pago se contradice. Son tres guardas (control 21 d
 | producción + `sk_test_` sin `STRIPE_DEMO_MODE` | la tienda parece cobrar y no cobra          |
 | fuera de producción + `sk_live_`               | cada prueba con una tarjeta cobra de verdad |
 | `sk_live_` + `STRIPE_DEMO_MODE=true`           | cobra mientras anuncia que no cobra         |
+| producción sin `BLOB_READ_WRITE_TOKEN`         | las imágenes se pierden en cada despliegue  |
 
-La tercera se añadió después de que ocurriera: el primer despliegue quedó
-publicado con la clave real mientras el cartel de arranque decía que no cobraba.
+Las dos últimas se añadieron **después de que el fallo ocurriera**. La de Stripe,
+porque el primer despliegue quedó publicado con la clave real mientras el cartel
+de arranque decía que no cobraba. La del almacén, porque las imágenes se
+guardaban en un disco que desaparece con el contenedor.
+
+Las dos son la misma clase de fallo, y por eso las dos se resuelven negándose a
+arrancar: **el sistema seguía adelante sin que fallara nada visible**, haciendo
+algo que nadie quería. Un error ruidoso se arregla el mismo día; uno silencioso
+se descubre semanas después, cuando ya nadie recuerda qué se desplegó.
 
 ### Desplegar como demostración
 
@@ -342,15 +355,6 @@ Es el primer sitio donde mirar ante cualquier problema de pagos.
 
 Dicho aquí y no escondido, porque en una defensa lo van a preguntar:
 
-- **Las imágenes subidas NO sobreviven a un despliegue.** El plan gratuito de
-  Render da un sistema de archivos efímero: cada despliegue o reinicio arranca de
-  un contenedor limpio, y `uploads/` se va con él. Las fichas de producto quedan
-  con la imagen rota, y no hay aviso de que ha pasado. Es el límite más serio de
-  este despliegue. Se arregla de dos maneras: un disco persistente de Render (de
-  pago) o un almacenamiento de objetos como Cloudflare R2 o S3 — que además es lo
-  correcto, porque separa los datos del proceso que los sirve. El código ya
-  aísla el guardado en `lib/storage.ts`, así que es sustituir una implementación,
-  no reescribir el módulo.
 - **Sin monitoreo ni alertas.** Si la API se cae a las 3 de la mañana, nadie se
   entera hasta que un cliente escribe. Lo mínimo sería un ping externo al
   `/health` y avisos por correo.

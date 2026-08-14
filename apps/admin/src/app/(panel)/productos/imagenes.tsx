@@ -4,6 +4,7 @@ import { Button, Card } from "@bodegon/ui";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useRef, useState } from "react";
+import { urlDeImagen } from "@bodegon/shared";
 import { ApiRequestError, FILES_URL, apiClient } from "../../../lib/api";
 
 interface Imagen {
@@ -127,7 +128,7 @@ export function ImagenesDelProducto({
                   necesita saber el dominio de origen, y ese se define el Día 15
                   al configurar R2. */}
               <img
-                src={`${BASE_ARCHIVOS}${imagen.url}`}
+                src={urlDeImagen(BASE_ARCHIVOS, imagen.url)}
                 alt={imagen.alt ?? "Imagen del producto"}
                 className="aspect-square w-full rounded-md border border-border-subtle object-cover"
               />
