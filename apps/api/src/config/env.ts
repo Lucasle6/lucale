@@ -113,6 +113,22 @@ const EnvSchema = z
       .string()
       .regex(/^whsec_/, "debe empezar por whsec_ (la da `stripe listen` o el panel)"),
 
+    /**
+     * Despliegue de DEMOSTRACIÓN: permite claves de prueba en producción.
+     *
+     * Existe para poder publicar la tienda con pagos de mentira, que es lo que
+     * hace falta para enseñarla sin riesgo de cobrarle a nadie.
+     *
+     * Es una variable aparte y no un valor más suave de otra porque tiene que
+     * ser imposible activarla por descuido. Quien la ve en el panel del
+     * proveedor entiende de inmediato que esa tienda no cobra de verdad.
+     *
+     * `z.stringbool()` acepta "true"/"1"/"yes" y sus contrarios: las variables
+     * de entorno siempre llegan como texto, y comparar contra "true" a mano es
+     * de donde salen los booleanos que valen `true` por decir "false".
+     */
+    STRIPE_DEMO_MODE: z.stringbool().default(false),
+
     // Orígenes permitidos por CORS. Se configuran en el Día 3, pero se validan desde
     // hoy: una allowlist explícita es más segura que un `origin: true` que acepta todo.
     WEB_ORIGIN: z.url(),
@@ -171,12 +187,29 @@ const EnvSchema = z
     // 1. Clave de prueba en producción: la tienda parece cobrar y no cobra.
     //    Se descubre semanas después, al cuadrar la caja y ver cero ingresos
     //    con el almacén vacío.
-    if (env.NODE_ENV === "production" && env.STRIPE_SECRET_KEY.startsWith("sk_test_")) {
+    //
+    //    LA EXCEPCIÓN, y por qué es una variable aparte y no un `if` más suave.
+    //
+    //    Un despliegue de demostración quiere exactamente esto: la tienda
+    //    pública y funcionando, con pagos de mentira, sin riesgo de cobrarle a
+    //    nadie. Es un caso legítimo.
+    //
+    //    Pero tiene que ser IMPOSIBLE DE ACTIVAR POR DESCUIDO. Por eso hace
+    //    falta poner otra variable, con un nombre que no deja lugar a dudas de
+    //    lo que estás haciendo. Nadie escribe esto sin querer, y quien lo lea
+    //    en el panel del proveedor entiende de inmediato que esa tienda no
+    //    cobra.
+    if (
+      env.NODE_ENV === "production" &&
+      env.STRIPE_SECRET_KEY.startsWith("sk_test_") &&
+      !env.STRIPE_DEMO_MODE
+    ) {
       ctx.addIssue({
         code: "custom",
         path: ["STRIPE_SECRET_KEY"],
         message:
-          "es una clave de PRUEBA y esto es producción: los pagos no cobrarían nada. Usa la sk_live_.",
+          "es una clave de PRUEBA y esto es producción: los pagos no cobrarían nada. " +
+          "Usa la sk_live_, o pon STRIPE_DEMO_MODE=true si es un despliegue de demostración.",
       });
     }
 
@@ -230,3 +263,33 @@ export const env: Env = result.data;
 
 export const isProduction = env.NODE_ENV === "production";
 export const isDevelopment = env.NODE_ENV === "development";
+
+/**
+ * Aviso en cada arranque cuando la tienda está publicada pero no cobra.
+ *
+ * Se escribe en stderr y no en el log de la aplicación a propósito: esto tiene
+ * que verse en la consola del proveedor aunque el nivel de log esté en `error`,
+ * y tiene que salir ANTES de que el servidor empiece a aceptar peticiones.
+ *
+ * El peor final para un modo de demostración es que se quede puesto sin que
+ * nadie lo recuerde, y que meses después alguien se pregunte por qué no entra
+ * dinero. Un banner en cada reinicio hace difícil olvidarlo.
+ */
+if (isProduction && env.STRIPE_DEMO_MODE) {
+  process.stderr.write(
+    [
+      "",
+      "  ┌──────────────────────────────────────────────────────────┐",
+      "  │  MODO DEMOSTRACIÓN — ESTA TIENDA NO COBRA DE VERDAD      │",
+      "  │                                                          │",
+      "  │  Stripe está en modo prueba con NODE_ENV=production.     │",
+      "  │  Los pedidos se crean y se marcan como pagados, pero no  │",
+      "  │  se mueve dinero real.                                   │",
+      "  │                                                          │",
+      "  │  Para cobrar: quita STRIPE_DEMO_MODE y pon una sk_live_. │",
+      "  └──────────────────────────────────────────────────────────┘",
+      "",
+      "",
+    ].join("\n"),
+  );
+}

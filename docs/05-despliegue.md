@@ -122,6 +122,25 @@ La validación de entorno **rechaza el arranque** si falta alguna, si dos secret
 coinciden, o si usas una clave `sk_test_` con `NODE_ENV=production`. Eso último
 evita el fallo más silencioso posible: una tienda que parece cobrar y no cobra.
 
+### Desplegar como demostración
+
+Para publicar la tienda **sin cobrar de verdad** —lo que quieres para defender el
+proyecto— usa las claves de prueba y añade:
+
+```
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...     # del endpoint en modo prueba
+STRIPE_DEMO_MODE=true
+```
+
+Es una variable aparte, y no un valor más suave de otra, porque tiene que ser
+imposible de activar por descuido. Con ella puesta la API imprime un aviso en
+**cada arranque**: el peor final de un modo demostración es que se quede puesto
+sin que nadie lo recuerde.
+
+Para pasar a cobrar de verdad: quitar `STRIPE_DEMO_MODE` y cambiar las dos claves
+por las reales.
+
 Comando de arranque: `pnpm --filter @bodegon/api start`
 
 ### Tienda y panel — Vercel
