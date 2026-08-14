@@ -4,7 +4,8 @@ import { Button, Card } from "@bodegon/ui";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useRef, useState } from "react";
-import { API_URL, ApiRequestError, apiClient } from "../../../lib/api";
+import { urlDeImagen } from "@bodegon/shared";
+import { ApiRequestError, FILES_URL, apiClient } from "../../../lib/api";
 
 interface Imagen {
   id: string;
@@ -13,7 +14,7 @@ interface Imagen {
 }
 
 /** Base sin el sufijo /v1, para componer las URLs de los archivos servidos. */
-const BASE_ARCHIVOS = API_URL.replace(/\/v1$/, "");
+const BASE_ARCHIVOS = FILES_URL;
 
 /**
  * Galería del producto: subir y eliminar imágenes.
@@ -127,7 +128,7 @@ export function ImagenesDelProducto({
                   necesita saber el dominio de origen, y ese se define el Día 15
                   al configurar R2. */}
               <img
-                src={`${BASE_ARCHIVOS}${imagen.url}`}
+                src={urlDeImagen(BASE_ARCHIVOS, imagen.url)}
                 alt={imagen.alt ?? "Imagen del producto"}
                 className="aspect-square w-full rounded-md border border-border-subtle object-cover"
               />

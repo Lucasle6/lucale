@@ -29,7 +29,16 @@ dotenv.config({ path: path.join(repoRoot, ".env"), quiet: true });
 /** Prefijo de los secretos de ejemplo. Sirve para bloquearlos en producción. */
 const DEV_SECRET_PREFIX = "dev_only_";
 
-const EnvSchema = z
+/**
+ * Se exporta SOLO para poder probar las guardas cruzadas.
+ *
+ * El resto del código no debe usarlo: la única puerta a la configuración es
+ * `env`, ya validado. Este esquema es una función pura sobre un objeto, así que
+ * un test puede darle combinaciones inválidas y comprobar que las rechaza —
+ * cosa imposible mientras la validación solo ocurriera al importar el módulo,
+ * porque un fallo ahí mata el proceso de pruebas entero.
+ */
+export const EnvSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 
@@ -133,6 +142,24 @@ const EnvSchema = z
     // hoy: una allowlist explícita es más segura que un `origin: true` que acepta todo.
     WEB_ORIGIN: z.url(),
     ADMIN_ORIGIN: z.url(),
+
+    /**
+     * Token del almacén de imágenes (Vercel Blob).
+     *
+     * Su PRESENCIA elige el proveedor: si está, las imágenes van al almacén de
+     * objetos; si no, al disco local. No hay una variable aparte para escoger
+     * porque dos variables que tienen que concordar son dos oportunidades de
+     * que no concuerden.
+     *
+     * Opcional aquí, obligatoria en producción — lo impone la guarda de abajo.
+     */
+    // NO se valida su forma, a diferencia de las claves de Stripe, y es
+    // deliberado. Allí el prefijo distingue dinero real de dinero de mentira:
+    // vale la pena comprobarlo porque codifica un significado. Aquí no hay tal
+    // dualidad, y atarnos a un formato que Vercel puede cambiar solo añade una
+    // forma de que la API se niegue a arrancar sin que nada esté mal.
+    // Un token equivocado falla en la primera subida, con el error del SDK.
+    BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
   })
   .superRefine((env, ctx) => {
     // Cada secreto protege una cosa distinta y todos deben ser distintos entre
@@ -181,8 +208,8 @@ const EnvSchema = z
       }
     }
 
-    // ── Las dos guardas de Stripe ──────────────────────────────────────────
-    // Confundir el entorno de pago falla de las dos maneras, y las dos duelen:
+    // ── Las tres guardas de Stripe ─────────────────────────────────────────
+    // Confundir el entorno de pago falla de varias maneras, y todas duelen:
 
     // 1. Clave de prueba en producción: la tienda parece cobrar y no cobra.
     //    Se descubre semanas después, al cuadrar la caja y ver cero ingresos
@@ -221,6 +248,54 @@ const EnvSchema = z
         path: ["STRIPE_SECRET_KEY"],
         message:
           "es una clave REAL y esto no es producción: cobrarías dinero de verdad al probar. Usa la sk_test_.",
+      });
+    }
+
+    // 3. Clave real con el modo demostración encendido: la contradicción.
+    //
+    //    STRIPE_DEMO_MODE declara "esta tienda no cobra". Una sk_live_ cobra.
+    //    Arrancar así hace que el cartel de abajo mienta en cada reinicio, y un
+    //    sistema que afirma con seguridad algo falso es peor que uno que calla:
+    //    con el segundo vas a comprobarlo, con el primero te fías.
+    //
+    //    Pasó de verdad. La tienda estuvo publicada apuntando a la clave real
+    //    mientras la consola anunciaba que no cobraba; se descubrió por el
+    //    prefijo `cs_live_` de una URL de pago, no por ningún aviso nuestro.
+    //
+    //    Va sin condición de NODE_ENV a propósito: la contradicción es igual de
+    //    mala en cualquier entorno, y la guarda 2 ya cubre el resto del caso
+    //    fuera de producción.
+    if (env.STRIPE_SECRET_KEY.startsWith("sk_live_") && env.STRIPE_DEMO_MODE) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["STRIPE_SECRET_KEY"],
+        message:
+          "es una clave REAL pero STRIPE_DEMO_MODE está encendido: la tienda cobraría " +
+          "de verdad mientras anuncia que no cobra. Pon la sk_test_, o quita " +
+          "STRIPE_DEMO_MODE si de verdad quieres cobrar.",
+      });
+    }
+
+    // ── Almacenamiento de imágenes ─────────────────────────────────────────
+    //
+    // En producción NO vale el disco local. El sistema de archivos de un
+    // contenedor es efímero: cada despliegue arranca de una imagen limpia y se
+    // lleva `uploads/` con él. Las fichas de producto quedan con la imagen rota
+    // y nadie se entera, porque no falla nada — los archivos simplemente ya no
+    // están.
+    //
+    // Es la misma familia de fallo que la guarda 3 de Stripe: el sistema sigue
+    // adelante como si todo fuera bien mientras hace algo que nadie quiere. Y
+    // como se descubre semanas después, cuando ya no recuerdas qué desplegaste,
+    // la única defensa útil es no dejar arrancar.
+    if (env.NODE_ENV === "production" && env.BLOB_READ_WRITE_TOKEN === undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["BLOB_READ_WRITE_TOKEN"],
+        message:
+          "falta, y sin almacén de objetos las imágenes se guardan en el disco del " +
+          "contenedor: desaparecen en el siguiente despliegue, sin ningún aviso. " +
+          "Está en el panel de Vercel, en el almacén Blob, pestaña .env.local.",
       });
     }
   });

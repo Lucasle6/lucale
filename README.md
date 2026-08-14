@@ -70,21 +70,32 @@ nunca llega al navegador de un cliente de la tienda.
 
 ### Comandos
 
-| Comando           | Qué hace                                                |
-| ----------------- | ------------------------------------------------------- |
-| `pnpm dev`        | Compila los packages y arranca la API en modo watch     |
-| `pnpm dev:web`    | Arranca la tienda (Next.js) en el puerto 3000           |
-| `pnpm dev:admin`  | Arranca el panel de administración en el puerto 3001    |
-| `pnpm typecheck`  | TypeScript en todos los workspaces                      |
-| `pnpm lint`       | ESLint con reglas que usan información de tipos         |
-| `pnpm format`     | Prettier sobre todo el repo                             |
-| `pnpm db:up`      | Levanta PostgreSQL 17 + Adminer                         |
-| `pnpm db:down`    | Los detiene (conserva los datos)                        |
-| `pnpm db:reset`   | Los detiene **borrando el volumen** y vuelve a crearlos |
-| `pnpm db:logs`    | Sigue los logs de PostgreSQL                            |
-| `pnpm db:migrate` | Crea y aplica migraciones desde el esquema Prisma       |
-| `pnpm db:seed`    | Siembra el catálogo de ejemplo (idempotente)            |
-| `pnpm db:studio`  | Abre Prisma Studio, un visor de la base de datos        |
+| Comando              | Qué hace                                                |
+| -------------------- | ------------------------------------------------------- |
+| `pnpm dev`           | Compila los packages y arranca la API en modo watch     |
+| `pnpm dev:web`       | Arranca la tienda (Next.js) en el puerto 3000           |
+| `pnpm dev:admin`     | Arranca el panel de administración en el puerto 3001    |
+| `pnpm typecheck`     | TypeScript en todos los workspaces                      |
+| `pnpm lint`          | ESLint con reglas que usan información de tipos         |
+| `pnpm format`        | Prettier sobre todo el repo                             |
+| `pnpm db:up`         | Levanta PostgreSQL 17 + Adminer                         |
+| `pnpm db:down`       | Los detiene (conserva los datos)                        |
+| `pnpm db:reset`      | Los detiene **borrando el volumen** y vuelve a crearlos |
+| `pnpm db:logs`       | Sigue los logs de PostgreSQL                            |
+| `pnpm db:migrate`    | Crea y aplica migraciones desde el esquema Prisma       |
+| `pnpm db:seed`       | Siembra el catálogo de ejemplo (idempotente)            |
+| `pnpm db:studio`     | Abre Prisma Studio, un visor de la base de datos        |
+| `pnpm test`          | Las 191 pruebas de API y aritmética de dinero           |
+| `pnpm test:e2e`      | Los 7 recorridos de compra en un navegador real         |
+| `pnpm db:test:setup` | Crea, migra y siembra la base de datos de PRUEBAS       |
+| `pnpm secretos`      | Genera los secretos de producción (no escribe nada)     |
+
+Las pruebas de navegador van aparte porque levantan la API y la tienda en
+puertos propios. La primera vez hay que descargar Chromium:
+
+```bash
+pnpm --filter @bodegon/e2e install:browsers
+```
 
 ### Calidad automática
 

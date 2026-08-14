@@ -1,7 +1,9 @@
 import { Badge, Button, Card, EmptyState } from "@bodegon/ui";
+import { urlDeImagen } from "@bodegon/shared";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { apiServer } from "../../../lib/api-server";
+import { FILES_URL } from "../../../lib/api";
 
 export const metadata = { title: "Productos" };
 
@@ -215,11 +217,17 @@ function Miniatura({
   }
 
   return (
-    // <img> y no next/image: en desarrollo las imágenes las sirve la API, y la
-    // optimización de Next necesita el dominio de origen configurado, que se
-    // define el Día 15 junto con R2.
+    // <img> y no next/image: la optimización de Next necesita el dominio de
+    // origen declarado en la configuración, y aquí conviven dos —la API en
+    // desarrollo y el almacén de objetos en producción—. No compensa por una
+    // miniatura de 56 px.
+    //
+    // El origen SALE DE urlDeImagen y no se escribe aquí. Estuvo puesto a mano
+    // como `http://localhost:4000`, con una nota de "se arregla el Día 15" que
+    // nadie volvió a leer: la lista del panel jamás mostró una imagen en
+    // producción. No fallaba nada visible desde fuera, así que nadie lo notó.
     <img
-      src={`http://localhost:4000${url}`}
+      src={urlDeImagen(FILES_URL, url)}
       alt={`Imagen de ${nombre}`}
       className="size-14 shrink-0 rounded-md object-cover"
     />

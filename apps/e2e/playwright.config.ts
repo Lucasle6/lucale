@@ -73,7 +73,10 @@ export default defineConfig({
       timeout: 120_000,
       env: {
         PORT: String(PUERTO_WEB),
-        NEXT_PUBLIC_API_URL: `http://localhost:${String(PUERTO_API)}/v1`,
+        // El navegador llama a /v1 del propio origen y Next lo reenvía aquí.
+        // Es la misma forma que en producción, así que estas pruebas ejercitan
+        // el camino real y no uno distinto.
+        API_ORIGIN: `http://localhost:${String(PUERTO_API)}`,
       },
     },
   ],
