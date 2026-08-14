@@ -251,7 +251,41 @@ Pasó aquí: `LCL-2026-1000` se creó mientras la clave era la real y nunca podr
 cerrarse. Al pasar a cobrar de verdad hay que **registrar el endpoint otra vez en
 modo real** y poner su `whsec_` —que es otro— en `STRIPE_WEBHOOK_SECRET`.
 
-#### Comprobarlo sin hacer una compra
+### La primera cuenta de administrador
+
+**Sin esto la tienda funciona y nadie puede administrarla**: no se añade un
+producto, ni una foto, ni se consulta un pedido. Es fácil de olvidar porque nada
+falla — la parte pública va perfectamente.
+
+```bash
+pnpm admin:crear --produccion
+```
+
+Pregunta el correo y la contraseña con la **entrada oculta**: no quedan en el
+historial de la terminal ni pasan por ningún archivo. Antes de escribir en
+producción exige teclear "producción" a mano.
+
+Hace dos cosas que no pueden juntarse:
+
+1. **Registra** la cuenta por el endpoint público, pasando antes por el CSRF como
+   cualquier cliente. No escribe el hash a mano a propósito: así la contraseña
+   pasa por el mismo argon2id con el mismo pepper que la de cualquiera. Una
+   segunda ruta de hasheo se desviaría de la primera el día que alguien cambie
+   los parámetros en un sitio y olvide el otro.
+2. **Asciende** esa cuenta a `SUPER_ADMIN` con una única escritura en la base.
+
+El segundo paso va por la base y no por una ruta de la API porque **ninguna ruta
+concede ese rol**, y así debe seguir: una que lo hiciera sería una escalada de
+privilegios esperando a que alguien la encontrara. El script se niega además a
+ejecutarse si ya existen administradores, para no volverse una forma cómoda de
+repartir permisos.
+
+Después, en el panel: el primer inicio de sesión responde
+`two_factor_setup_required` y lleva al alta del segundo factor, que es
+obligatorio para administradores. **Guarda los códigos de respaldo** — son de un
+solo uso y son la única entrada si pierdes el teléfono.
+
+#### Comprobar el webhook sin hacer una compra
 
 En la página del destino, **Enviar eventos de prueba**. El evento llega firmado
 de verdad pero sin nuestros metadatos, y la respuesta distingue lo que importa:
