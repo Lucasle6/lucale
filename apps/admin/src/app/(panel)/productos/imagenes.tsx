@@ -77,8 +77,16 @@ export function ImagenesDelProducto({
         setImagenes((previas) => previas.filter((i) => i.id !== imagenId));
         router.refresh();
       })
-      .catch(() => {
-        setError("No se pudo eliminar la imagen");
+      .catch((e: unknown) => {
+        // Se muestra el mensaje del servidor, igual que al subir. Antes se
+        // descartaba y se ponía siempre el mismo texto genérico: por eso este
+        // borrado estuvo roto sin que nadie supiera de qué se quejaba. El
+        // servidor sabía perfectamente lo que pasaba y nadie se lo preguntó.
+        setError(
+          e instanceof ApiRequestError
+            ? e.error.message
+            : "No se pudo eliminar la imagen",
+        );
       });
   }
 

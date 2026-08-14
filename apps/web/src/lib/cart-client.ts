@@ -31,8 +31,15 @@ async function pedir(path: string, options: RequestInit = {}): Promise<Cart> {
     // El token CSRF viaja en cabecera además de en cookie. Es lo que un sitio
     // ajeno no puede falsificar: puede provocar que el navegador mande la
     // cookie, pero no leerla para copiarla aquí.
+    // Solo se anuncia JSON si de verdad va un cuerpo. Hoy todas las llamadas de
+    // aquí lo llevan, así que ponerla siempre funcionaba — pero es una trampa
+    // esperando: Fastify rechaza con FST_ERR_CTP_EMPTY_JSON_BODY una petición
+    // que anuncia JSON y llega vacía, antes siquiera de mirar la ruta. En el
+    // panel eso rompió en silencio el borrado de imágenes y el cierre de sesión.
     headers: await conCsrf({
-      "content-type": "application/json",
+      ...(options.body === undefined || options.body === null
+        ? {}
+        : { "content-type": "application/json" }),
       ...(options.headers as Record<string, string> | undefined),
     }),
   });

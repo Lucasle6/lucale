@@ -90,10 +90,33 @@ export async function apiClient<T>(path: string, options: RequestInit = {}): Pro
     // panel lo necesita igual que la tienda: es donde se cambian precios y se
     // aprueban reembolsos, o sea el objetivo que más interesa secuestrar.
     headers: await conCsrf({
-      ...(options.body instanceof FormData ? {} : { "content-type": "application/json" }),
+      ...(necesitaContentTypeJson(options) ? { "content-type": "application/json" } : {}),
       ...(options.headers as Record<string, string> | undefined),
     }),
   });
 
   return parsear<T>(response);
+}
+
+/**
+ * ¿Hay que anunciar que el cuerpo es JSON?
+ *
+ * Solo si hay cuerpo, y solo si no lo pone el navegador por su cuenta.
+ *
+ * EL FALLO QUE ESTO ARREGLA. Antes se ponía la cabecera en TODA petición que no
+ * fuera FormData, incluidas las que no llevan cuerpo. Fastify lo interpreta al
+ * pie de la letra: "viene JSON" seguido de nada es una petición mal formada, y
+ * la rechaza con FST_ERR_CTP_EMPTY_JSON_BODY antes de llegar a la ruta.
+ *
+ * Rompía en silencio las dos únicas mutaciones sin cuerpo del panel: borrar una
+ * imagen y CERRAR SESIÓN. Nadie lo vio porque el cliente mostraba un mensaje
+ * genérico y el error real no salía de la consola del navegador.
+ *
+ * `FormData` se excluye aparte porque ahí la cabecera la pone el navegador, con
+ * el `boundary` que separa las partes. Escribirla a mano deja el envío sin ese
+ * boundary y el servidor no puede trocear el archivo.
+ */
+function necesitaContentTypeJson(options: RequestInit): boolean {
+  if (options.body === undefined || options.body === null) return false;
+  return !(options.body instanceof FormData);
 }
