@@ -4,7 +4,7 @@ import { Button, Card } from "@bodegon/ui";
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useRef, useState } from "react";
-import { API_URL, ApiRequestError, apiClient } from "../../../lib/api";
+import { ApiRequestError, FILES_URL, apiClient } from "../../../lib/api";
 
 interface Imagen {
   id: string;
@@ -13,7 +13,7 @@ interface Imagen {
 }
 
 /** Base sin el sufijo /v1, para componer las URLs de los archivos servidos. */
-const BASE_ARCHIVOS = API_URL.replace(/\/v1$/, "");
+const BASE_ARCHIVOS = FILES_URL;
 
 /**
  * Galería del producto: subir y eliminar imágenes.

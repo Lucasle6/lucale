@@ -23,7 +23,7 @@ import type { NextRequest } from "next/server";
 
 /** Origen de la API, que corre en otro puerto (y en producción, en otro dominio). */
 function origenDeLaApi(): string {
-  const url = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
+  const url = process.env.NEXT_PUBLIC_FILES_URL ?? "http://localhost:4000";
   try {
     return new URL(url).origin;
   } catch {
@@ -59,7 +59,7 @@ export function proxy(request: NextRequest): NextResponse {
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: ${api};
     font-src 'self';
-    connect-src 'self' ${api}${enDesarrollo ? " ws: wss:" : ""};
+    connect-src 'self'${enDesarrollo ? " ws: wss:" : ""};
     object-src 'none';
     base-uri 'self';
     form-action 'self';

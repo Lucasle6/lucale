@@ -148,9 +148,23 @@ Comando de arranque: `pnpm --filter @bodegon/api start`
 Dos proyectos, mismo repositorio, distinta raíz (`apps/web` y `apps/admin`).
 
 ```
-NEXT_PUBLIC_API_URL=https://api.lucale.mx/v1
+API_ORIGIN=https://api.lucale.mx          # servidor: absoluta, NO lleva NEXT_PUBLIC_
+NEXT_PUBLIC_FILES_URL=https://api.lucale.mx   # imágenes subidas
 NEXT_PUBLIC_SITE_URL=https://lucale.mx
 ```
+
+**El navegador nunca llama a la API directamente.** Next reenvía `/v1/*` al
+`API_ORIGIN` desde el servidor, así que para el navegador todo ocurre en el mismo
+dominio.
+
+No es una optimización, es lo único que hace funcionar las cookies. Con la tienda
+en `lucale.vercel.app` y la API en `lucale-api.onrender.com`, cualquier cookie que
+ponga la API es de terceros y el navegador la descarta: se cae el carrito y se cae
+el CSRF, porque su token viaja en una cookie que nunca llega a guardarse.
+
+En desarrollo no se ve, porque `localhost:3000` y `localhost:4000` son el mismo
+host — el puerto no cuenta para las cookies. Es un fallo que solo existe en
+producción, y solo si el frontend y la API viven en dominios distintos.
 
 ### Webhook de Stripe
 

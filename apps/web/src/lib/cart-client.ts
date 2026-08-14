@@ -10,7 +10,19 @@
 import type { Cart } from "@bodegon/shared";
 import { conCsrf } from "./csrf";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
+/**
+ * El navegador llama a la API a través de SU PROPIO origen.
+ *
+ * `/v1` es una ruta relativa, no un dominio: Next la reenvía a la API por
+ * detrás (ver la reescritura en next.config.ts). Así las cookies son de
+ * primera parte y el CORS no interviene.
+ *
+ * Antes esto apuntaba al dominio de la API. En desarrollo funcionaba porque
+ * localhost:3000 y localhost:4000 son el mismo host; en producción, con la
+ * tienda y la API en dominios distintos, el navegador descartaba las cookies
+ * y el carrito dejaba de guardar nada.
+ */
+const API_URL = "/v1";
 
 async function pedir(path: string, options: RequestInit = {}): Promise<Cart> {
   const response = await fetch(`${API_URL}${path}`, {

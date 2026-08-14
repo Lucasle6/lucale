@@ -18,10 +18,21 @@ import { cookies } from "next/headers";
  * este archivo desde un Client Component.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
+/**
+ * URL de la API para el SERVIDOR, absoluta.
+ *
+ * El servidor de Next llama a la API directamente, sin pasar por la
+ * reescritura: no tiene cookies de navegador que proteger ni CORS que
+ * respetar, y ahorrarse el rodeo es una petición menos por página.
+ *
+ * Sin el prefijo NEXT_PUBLIC_ a propósito: este valor no debe acabar en el
+ * bundle que descarga el navegador.
+ */
+const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:4000";
+const API_URL = `${API_ORIGIN}/v1`;
 
 /** Base sin /v1, para componer las URLs de las imágenes servidas. */
-export const FILES_URL = API_URL.replace(/\/v1$/, "");
+export const FILES_URL = API_ORIGIN;
 
 /** Segundos que el catálogo se sirve de caché antes de refrescarse. */
 const REVALIDATE_SECONDS = 60;
