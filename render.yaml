@@ -23,9 +23,15 @@ services:
     # Si corepack vuelve a fallar, la alternativa que no depende de él es
     # sustituir `corepack enable` por `npm i -g pnpm@9.15.9`. Es más tosco pero
     # no pregunta nada a nadie.
+    # `--prod=false` es OBLIGATORIO aquí, no una preferencia.
+    #
+    # NODE_ENV=production hace que pnpm se salte las devDependencies. Pero
+    # typescript, tsx y prisma SON devDependencies: sin ellas no hay nada con
+    # qué compilar. La bandera fuerza a instalarlas para construir; lo que
+    # acaba corriendo en producción sigue siendo solo el JavaScript compilado.
     buildCommand: >-
       corepack enable &&
-      pnpm install --frozen-lockfile &&
+      pnpm install --frozen-lockfile --prod=false &&
       pnpm --filter @bodegon/db generate &&
       pnpm build:packages &&
       pnpm --filter @bodegon/api build
