@@ -20,6 +20,9 @@ services:
     # El monorepo se instala entero y luego se compila solo lo necesario:
     # los paquetes compartidos primero —la API los importa compilados— y
     # después la API.
+    # Si corepack vuelve a fallar, la alternativa que no depende de él es
+    # sustituir `corepack enable` por `npm i -g pnpm@9.15.9`. Es más tosco pero
+    # no pregunta nada a nadie.
     buildCommand: >-
       corepack enable &&
       pnpm install --frozen-lockfile &&
@@ -56,6 +59,15 @@ services:
       # día cambie sola y algo deje de compilar sin que hayas tocado nada.
       - key: NODE_VERSION
         value: "22"
+
+      # Corepack pide confirmación antes de descargar pnpm. En una terminal le
+      # dirías que sí; en un build automatizado no hay nadie que conteste y el
+      # proceso muere con un ELIFECYCLE sin más explicación.
+      #
+      # Costó un despliegue fallido descubrirlo, y el log no lo dice: solo se ve
+      # la línea del "!" pidiendo permiso y, justo después, el fallo.
+      - key: COREPACK_ENABLE_DOWNLOAD_PROMPT
+        value: "0"
 
       # ── Se piden al crear el servicio ─────────────────────────────────────
       # `sync: false` = Render los pregunta y los guarda cifrados.
