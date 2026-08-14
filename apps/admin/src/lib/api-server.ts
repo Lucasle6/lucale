@@ -1,7 +1,15 @@
 import "server-only";
 
 import { cookies } from "next/headers";
-import { API_URL, ApiRequestError } from "./api";
+import { ApiRequestError } from "./api";
+
+/**
+ * El servidor llama a la API directamente, con URL absoluta: no pasa por la
+ * reescritura porque no tiene cookies de navegador ni CORS de por medio, y se
+ * ahorra un salto.
+ */
+const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:4000";
+const API_URL = `${API_ORIGIN}/v1`;
 import type { ApiError } from "./api";
 
 /**

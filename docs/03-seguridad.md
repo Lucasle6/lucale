@@ -1,6 +1,6 @@
 # Seguridad — LuCaLe
 
-Pediste "el estándar más alto". Esto es lo que eso significa en concreto: 20 controles,
+Pediste "el estándar más alto". Esto es lo que eso significa en concreto: 22 controles,
 cada uno con el ataque que detiene y el día en que se implementa.
 
 La referencia es **OWASP Top 10 (2021)** y las **OWASP Cheat Sheets**. No inventamos
@@ -155,7 +155,7 @@ subtotal, envío, impuestos y total.
 **Detiene:** manipulación de precios. Si el importe llega desde el navegador, alguien
 comprará tu catálogo a un centavo. Es la vulnerabilidad más cara de un e-commerce.
 
-### 19 · Firma e idempotencia de webhooks · Día 11–12
+### 19 · Firma e idempotencia de webhooks · Día 11–12, corregido el Día 15
 
 Verificación de firma con el secreto de Stripe, sobre el **cuerpo crudo** (no parseado), y
 tabla `WebhookEvent` con `externalId` único.
@@ -163,11 +163,67 @@ tabla `WebhookEvent` con `externalId` único.
 **Detiene:** que cualquiera falsifique un "pago confirmado" con un POST, y que un reenvío
 legítimo de Stripe duplique la orden.
 
+**Corrección del Día 15.** La primera versión trataba cualquier fila sin `processedAt`
+como un intento fallido que había que repetir. Eso dejaba una ventana: tres entregas
+simultáneas veían `processedAt` en null —porque la primera aún no había terminado— y las
+tres procesaban, descontando el inventario tres veces.
+
+Lo cazó la **integración continua en su primera ejecución real**, no las pruebas locales:
+aquí la primera entrega acababa antes de que las otras miraran; en un runner más lento,
+no. Ahora se distinguen tres estados —procesado, fallido y en vuelo— usando la columna
+`error` para saber si un intento se cayó de verdad, con un plazo de 5 minutos para no
+bloquear un evento cuyo proceso murió a media faena.
+
 ### 20 · Datos de tarjeta fuera de nuestro alcance · Día 11
 
 Stripe Checkout hospedado. Nunca vemos, transmitimos ni almacenamos un número de tarjeta.
 
 **Detiene:** todo el problema. Nos deja en PCI DSS SAQ-A, el nivel más liviano.
+
+### 21 · El entorno de pago no se puede confundir · Día 1, completado el Día 15
+
+Tres guardas cruzadas en la validación de entorno. Ninguna deja arrancar la API; no avisan, se
+niegan:
+
+| #   | Combinación                                    | Por qué se bloquea                          |
+| --- | ---------------------------------------------- | ------------------------------------------- |
+| 1   | producción + `sk_test_` sin `STRIPE_DEMO_MODE` | la tienda parece cobrar y no cobra          |
+| 2   | fuera de producción + `sk_live_`               | cada prueba con una tarjeta cobra de verdad |
+| 3   | `sk_live_` + `STRIPE_DEMO_MODE=true`           | cobra mientras anuncia que no cobra         |
+
+La tercera se añadió **después de que el fallo ocurriera de verdad**. Con las dos primeras, el
+primer despliegue quedó publicado apuntando a la clave real de Stripe mientras la consola
+imprimía en cada reinicio el cartel de "esta tienda no cobra". Se descubrió por el prefijo
+`cs_live_` de una URL de pago, no por ningún aviso nuestro.
+
+Lo importante del incidente no es la clave mal pegada —eso se arregla en un minuto— sino que el
+sistema **afirmaba con seguridad algo falso**. Un sistema que calla te hace ir a comprobarlo; uno
+que miente con confianza consigue que no lo compruebes.
+
+La guarda 3 no lleva condición de `NODE_ENV`, a diferencia de las otras dos: la contradicción es
+igual de mala en cualquier entorno. Hay una prueba que falla si alguien se la añade.
+
+**Detiene:** cobrar sin querer, no cobrar sin darse cuenta, y creerse el cartel.
+
+### 22 · Los archivos subidos no viven en el proceso que los sirve · Día 15
+
+En producción las imágenes van a un almacén de objetos (Vercel Blob), nunca al disco del
+contenedor. Una cuarta guarda impide arrancar en producción sin él.
+
+**Detiene:** dos cosas distintas.
+
+La primera es pérdida de datos: el sistema de archivos de un contenedor es efímero, así que
+guardar ahí significa perder cada imagen en el siguiente despliegue —en silencio, porque no
+falla nada: los archivos simplemente dejan de estar.
+
+La segunda es de seguridad, y es la razón por la que un almacén separado era lo correcto desde
+el principio: servir contenido subido por usuarios **desde el mismo origen que la aplicación**
+permite que un archivo malicioso herede sus permisos —cookies, almacenamiento local— si el
+navegador llegara a interpretarlo en vez de mostrarlo. En otro dominio, ese archivo no tiene
+acceso a nada nuestro aunque se interprete.
+
+En desarrollo se sigue usando el disco, con `nosniff` y una CSP `default-src 'none'` sobre esa
+ruta como compensación.
 
 ---
 

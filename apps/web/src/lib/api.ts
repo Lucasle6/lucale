@@ -1,5 +1,6 @@
 import "server-only";
 
+import { urlDeImagen } from "@bodegon/shared";
 import type { Cart } from "@bodegon/shared";
 import { cookies } from "next/headers";
 
@@ -18,10 +19,27 @@ import { cookies } from "next/headers";
  * este archivo desde un Client Component.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
+/**
+ * URL de la API para el SERVIDOR, absoluta.
+ *
+ * El servidor de Next llama a la API directamente, sin pasar por la
+ * reescritura: no tiene cookies de navegador que proteger ni CORS que
+ * respetar, y ahorrarse el rodeo es una petición menos por página.
+ *
+ * Sin el prefijo NEXT_PUBLIC_ a propósito: este valor no debe acabar en el
+ * bundle que descarga el navegador.
+ */
+const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:4000";
+const API_URL = `${API_ORIGIN}/v1`;
 
 /** Base sin /v1, para componer las URLs de las imágenes servidas. */
-export const FILES_URL = API_URL.replace(/\/v1$/, "");
+export const FILES_URL = API_ORIGIN;
+
+/**
+ * Dominio público de la tienda. Sale de aquí y no de cada página que lo use:
+ * la configuración entra por una sola puerta, o deja de ser configuración.
+ */
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 /** Segundos que el catálogo se sirve de caché antes de refrescarse. */
 const REVALIDATE_SECONDS = 60;
@@ -113,9 +131,15 @@ export function listCategories(): Promise<{ items: Category[] }> {
   return pedir("/categories", 300);
 }
 
-/** Compone la URL absoluta de una imagen servida por la API. */
+/**
+ * Compone la URL absoluta de una imagen servida por la API.
+ *
+ * La regla vive en `@bodegon/shared` porque el carrito la necesita desde un
+ * componente de CLIENTE, que no puede importar este módulo: aquí se lee
+ * `process.env.API_ORIGIN`, que solo existe en el servidor.
+ */
 export function imageUrl(url: string): string {
-  return `${FILES_URL}${url}`;
+  return urlDeImagen(FILES_URL, url);
 }
 
 // ─── Carrito ─────────────────────────────────────────────────────────────────

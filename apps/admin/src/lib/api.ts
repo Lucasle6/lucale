@@ -16,8 +16,31 @@
 
 import { conCsrf } from "./csrf";
 
-/** URL base de la API. En producción será el dominio real. */
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/v1";
+/**
+ * Para el NAVEGADOR: ruta relativa, reenviada por Next (ver next.config.ts).
+ *
+ * Así las cookies de sesión son de primera parte. Apuntando al dominio de la
+ * API, el navegador las descartaría por ser de terceros y el panel no podría
+ * mantener la sesión abierta.
+ */
+export const API_URL = "/v1";
+
+/**
+ * Base de las imágenes subidas, que SÍ van directas a la API.
+ *
+ * No llevan cookies ni credenciales, así que no tienen el problema de arriba y
+ * no hay razón para hacerlas pasar por el reenvío.
+ */
+export const FILES_URL = process.env.NEXT_PUBLIC_FILES_URL ?? "http://localhost:4000";
+
+/**
+ * Dónde vive la TIENDA pública. La usa el enlace "ver en la tienda".
+ *
+ * Estuvo escrita a mano dentro de la vista como `http://localhost:3000`, así
+ * que en producción ese enlace llevaba al ordenador de quien lo pulsara. No
+ * fallaba de forma visible: simplemente no cargaba, y se achacaba al navegador.
+ */
+export const STORE_URL = process.env.NEXT_PUBLIC_STORE_URL ?? "http://localhost:3000";
 
 export interface ApiError {
   code: string;
