@@ -78,6 +78,121 @@
   --shadow-sm: 0 1px 2px rgba(62, 42, 33, 0.05);
   --shadow-md: 0 4px 12px rgba(62, 42, 33, 0.06);
   --shadow-lg: 0 12px 32px rgba(62, 42, 33, 0.08);
+
+  /* ── Movimiento ────────────────────────────────────────────────────────
+     Duraciones y curvas como tokens, no sueltas por los componentes: si cada
+     transición elige la suya, el sitio se siente descoordinado aunque cada
+     pieza por separado esté bien.
+
+     Las curvas salen despacio y entran rápido (`cubic-bezier` con el primer
+     control bajo): es lo que hace que un movimiento parezca material en vez
+     de mecánico. Nada usa `linear` salvo lo que gira en bucle. */
+  --duracion-rapida: 150ms; /* cambios de estado: hover, foco */
+  --duracion-media: 320ms; /* entradas y salidas de elementos */
+  --duracion-lenta: 600ms; /* revelados al hacer scroll */
+  --curva-salida: cubic-bezier(0.22, 1, 0.36, 1); /* decelera al final */
+  --curva-suave: cubic-bezier(0.65, 0, 0.35, 1); /* simétrica, para bucles */
+
+  /* ── Flotación del producto ────────────────────────────────────────────
+     Seis segundos, no dos: un vaivén rápido parece un GIF. A esta velocidad
+     casi no se percibe como animación — se percibe como que la página está
+     viva. El recorrido es de 10px; más y el objeto parece que se cae.
+
+     La sombra va en CONTRAFASE: se encoge y se aclara cuando el producto sube.
+     Es lo que el ojo lee como altura. Sin ella no flota, se desliza. */
+  --animate-flotar: flotar 6s var(--curva-suave) infinite;
+  --animate-sombra-flotante: sombra-flotante 6s var(--curva-suave) infinite;
+}
+
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes sombra-flotante {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scaleX(0.82);
+    opacity: 0.32;
+  }
+}
+
+/**
+ * TEMA OSCURO — solo la tienda.
+ *
+ * Se activa poniendo `data-tema="oscuro"` en el <html> de apps/web. El panel no
+ * lo pone, así que sigue claro: un dashboard donde se leen tablas y se editan
+ * precios durante horas se trabaja mejor en claro, y además nadie lo ve más que
+ * quien administra.
+ *
+ * Redefine las MISMAS variables en un ámbito más específico, en vez de crear
+ * tokens nuevos. Así cada `bg-surface` y cada `text-ink-500` que ya existe en
+ * los componentes cambia solo, sin tocar una línea de su código.
+ *
+ * Los contrastes están calculados sobre el fondo #141110 con la fórmula WCAG
+ * 2.1, igual que los del tema claro. La tentación de una paleta oscura es
+ * bajar el contraste porque "se ve más elegante": eso deja el texto secundario
+ * ilegible para cualquiera con la vista cansada o el móvil al sol.
+ */
+[data-tema="oscuro"] {
+  /* Carbón cálido, nunca negro puro: el negro absoluto contra texto claro
+     produce un halo que cansa, y bajo la foto de un producto se ve plano. */
+  --color-bg: #141110;
+  --color-surface: #1c1816;
+  --color-surface-raised: #241f1c;
+
+  --color-border-subtle: #2b2522; /* 1.24:1 — SOLO decorativo */
+  --color-border-strong: #77695d; /* 3.55:1 ✓ para inputs y controles */
+
+  --color-ink-900: #f4eee4; /* 16.28:1 ✓ AAA — texto principal */
+  --color-ink-700: #cec2b2; /* 10.72:1 ✓ AAA — texto de apoyo */
+  --color-ink-500: #9a8c7b; /* 5.74:1 ✓ AA — metadatos, placeholders */
+
+  /* ── La marca cambia de terracota a LATÓN ───────────────────────────────
+     Sobre fondo claro, la terracota lee cálida y artesanal. Sobre carbón se
+     apaga y se ensucia. El latón mantiene el calor pero gana luz, y es lo que
+     separa "elegante" de "rústico". La escala se invierte: en oscuro los
+     números bajos son los apagados y los altos, los luminosos. */
+  --color-brand-50: #201a12;
+  --color-brand-100: #2e2517;
+  --color-brand-200: #453718;
+  --color-brand-300: #6b551f;
+  --color-brand-400: #8f7223;
+  --color-brand-500: #b08d26;
+  --color-brand-600: #c9a227; /* 7.77:1 ✓ — botón primario, con texto oscuro */
+  --color-brand-700: #dcc06a; /* 10.55:1 ✓ — hover, foco y enlaces */
+  --color-brand-800: #e8d391;
+  --color-brand-900: #f2e6bf;
+
+  --color-sage-300: #4a5c50;
+  --color-sage-700: #93ab9c; /* aclarado: el salvia oscuro desaparece aquí */
+
+  /* Los pasteles pierden su papel en oscuro —un fondo pastel con texto claro
+     encima no contrasta— así que se reconvierten en tintes muy apagados para
+     insignias, siempre con ink-900 encima. */
+  --color-pastel-mauve: #2f2630;
+  --color-pastel-blue: #222b31;
+  --color-pastel-peach: #33261f;
+
+  --color-success: #7fb495;
+  --color-warning: #e8c87e;
+  --color-danger: #e08a80; /* aclarado: el rojo oscuro no se distingue */
+
+  /* Las sombras dejan de servir para separar planos: una sombra negra sobre
+     carbón es invisible. En oscuro lo que separa es la LUZ, así que las
+     sombras se vuelven casi nulas y el trabajo lo hace `surface-raised`. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.55);
 }
 
 @layer base {

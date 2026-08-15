@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { Footer } from "../../page";
 import { Header } from "../../../components/header";
+import { ProductoFlotante, Revelar } from "@bodegon/ui";
 import { NotFound, SITE_URL, getProduct, imageUrl } from "../../../lib/api";
 import type { ProductDetail } from "../../../lib/api";
 import { SelectorTamano } from "./selector-tamano";
@@ -133,26 +134,43 @@ function Galeria({ producto }: { producto: ProductDetail }): ReactElement {
   const [principal, ...resto] = producto.images;
 
   return (
-    <div className="flex flex-col gap-3">
-      <img
-        src={imageUrl(principal?.url ?? "")}
-        alt={principal?.alt ?? producto.name}
-        className="aspect-square w-full rounded-lg border border-border-subtle object-cover"
-        // La imagen principal NO es lazy: es lo primero que se ve, y
-        // retrasarla empeora la métrica de carga percibida.
-        loading="eager"
-      />
+    <div className="flex flex-col gap-6">
+      {/*
+        El producto no se enmarca: FLOTA.
+
+        Se le quitan el borde, el fondo de tarjeta y el recorte cuadrado que
+        tenía. Un marco dice "esto es una foto"; el producto suspendido sobre el
+        carbón dice "esto es el producto".
+
+        Depende de que la foto venga recortada del fondo. Si trae su propia mesa
+        detrás se verá el rectángulo y el efecto se cae — por eso `object-contain`
+        y no `cover`: recortar un bote por los lados para rellenar un cuadrado es
+        justo lo contrario de lo que se busca aquí.
+      */}
+      <ProductoFlotante className="py-8">
+        <img
+          src={imageUrl(principal?.url ?? "")}
+          alt={principal?.alt ?? producto.name}
+          className="max-h-[28rem] w-full object-contain"
+          // La imagen principal NO es lazy: es lo primero que se ve, y
+          // retrasarla empeora la métrica de carga percibida.
+          loading="eager"
+        />
+      </ProductoFlotante>
+
       {resto.length > 0 ? (
         <ul className="grid grid-cols-4 gap-3">
-          {resto.map((imagen) => (
-            <li key={imagen.url}>
+          {resto.map((imagen, indice) => (
+            // Escalonadas: entran una detrás de otra y el conjunto se lee como
+            // un movimiento, no como cuatro cosas saltando a la vez.
+            <Revelar as="li" key={imagen.url} retraso={indice * 70}>
               <img
                 src={imageUrl(imagen.url)}
                 alt={imagen.alt ?? producto.name}
-                className="aspect-square w-full rounded-md border border-border-subtle object-cover"
+                className="aspect-square w-full rounded-md border border-border-subtle bg-surface object-contain p-2 transition-colors hover:border-brand-600"
                 loading="lazy"
               />
-            </li>
+            </Revelar>
           ))}
         </ul>
       ) : null}

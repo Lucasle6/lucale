@@ -17,6 +17,9 @@ export type { ButtonProps, ButtonSize, ButtonVariant } from "./button";
 export { Input, Select, Textarea } from "./form";
 export type { InputProps, SelectProps, TextareaProps } from "./form";
 
+export { ProductoFlotante, Revelar } from "./movimiento";
+export type { ProductoFlotanteProps, RevelarProps } from "./movimiento";
+
 export { Badge, Card, EmptyState, Skeleton } from "./display";
 export type {
   BadgeProps,

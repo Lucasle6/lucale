@@ -36,7 +36,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }): React.ReactElement {
   return (
-    <html lang="es-MX" className={`${inter.variable} ${fraunces.variable}`}>
+    /* `data-tema` lo lee packages/ui/src/tokens.css y redefine ahí la paleta
+       entera. Va en el <html> y no en el <body> para que el color de fondo
+       pinte también la zona de rebote al hacer scroll más allá del final, que
+       si no aparece blanca y delata el truco.
+
+       El panel NO lo pone: se administra mejor en claro. */
+    <html
+      lang="es-MX"
+      data-tema="oscuro"
+      className={`${inter.variable} ${fraunces.variable}`}
+    >
       <body>{children}</body>
     </html>
   );
