@@ -1,28 +1,46 @@
 # Design system — LuCaLe
 
-Paleta sobria de blancos, cremas y pasteles. Delicada sin volverse frágil, profesional sin
-volverse fría.
+**Hay dos temas, y la misma paleta sirve para los dos.**
+
+|                          | tema       | por qué                                          |
+| ------------------------ | ---------- | ------------------------------------------------ |
+| **Tienda** (`apps/web`)  | **oscuro** | el producto es lo único luminoso en pantalla     |
+| **Panel** (`apps/admin`) | **claro**  | se leen tablas y se editan precios durante horas |
+
+El tema oscuro no define tokens nuevos: **redefine los mismos** dentro de
+`[data-tema="oscuro"]`, que la tienda pone en su `<html>`. Por eso cada `bg-surface` y cada
+`text-ink-500` escrito en un componente cambia solo, sin una línea de código condicional. La
+fuente única sigue siendo [`packages/ui/src/tokens.css`](../packages/ui/src/tokens.css);
+este documento la explica, no la duplica.
 
 Todos los ratios de contraste de este documento están **calculados con la fórmula WCAG
 2.1**, no estimados a ojo. El riesgo real de una paleta pastel es quedar preciosa e
-ilegible; dos colores se oscurecieron respecto al primer borrador por ese motivo.
+ilegible; dos colores se oscurecieron respecto al primer borrador por ese motivo, y en el
+tema oscuro un tercero — el borde de controles se quedaba en 2.44:1 y hubo que subirlo.
+
+> **Cómo se miden.** Un color de texto se mide contra el **fondo**; un relleno de botón, contra
+> **el texto que lleva encima**. Medir un botón contra la página da un número tranquilizador
+> y falso. Por eso cada tabla dice contra qué está medido.
 
 ---
 
 ## Principio rector
 
-El color no es la marca aquí — **el espacio en blanco lo es**. La paleta se mantiene
-apagada a propósito para que el producto (un frasco de salsa, una fotografía) sea lo único
-saturado en pantalla. El acento terracota aparece poco, y por eso pesa.
+El color no es la marca aquí — **el vacío lo es**. En el panel ese vacío es blanco; en la
+tienda es carbón. En los dos casos hace lo mismo: dejar que el producto —un frasco de salsa,
+una fotografía— sea lo único saturado en pantalla. El acento aparece poco, y por eso pesa.
 
-Tres reglas que se aplican sin excepción:
+Cuatro reglas que se aplican sin excepción:
 
 1. **Nunca negro puro ni blanco puro** como texto o fondo principal. `#2B2521` sobre
-   `#FDFBF7` — ambos con temperatura cálida. El negro puro sobre blanco puro vibra y cansa.
+   `#FDFBF7` en claro, `#F4EEE4` sobre `#141110` en oscuro — todos con temperatura cálida.
+   El negro puro sobre blanco puro vibra y cansa; el negro absoluto bajo una foto se ve plano.
 2. **Nunca un color saturado a pantalla completa.** Los pasteles son fondos de detalle
    (badges, estados), jamás secciones enteras.
 3. **El foco siempre visible.** Anillo de 2 px en `brand-700` con 2 px de separación. Una
    interfaz delicada que no se puede navegar con teclado no es elegante, es excluyente.
+4. **Ningún contraste se estima.** Se calcula, se anota junto al token, y se mide contra el
+   color con el que de verdad va emparejado.
 
 ---
 
@@ -89,6 +107,103 @@ Solo como **fondo** de elementos pequeños, siempre con `--text-primary` encima.
 Los tres están desaturados a propósito: un rojo de alarma clásico rompería la sobriedad del
 conjunto. Siguen siendo inequívocos, y nunca son el único indicador — siempre acompañados
 de icono y texto, para no depender del color (WCAG 1.4.1).
+
+---
+
+# Tema oscuro — la tienda
+
+Mismos nombres de token, valores distintos. Se activa con `data-tema="oscuro"` en el
+`<html>` de la tienda.
+
+## Neutrales — carbón cálido
+
+Nunca negro puro, por la misma razón que en claro nunca hay blanco puro: el negro absoluto
+contra texto claro produce un halo que cansa, y bajo la foto de un producto se ve plano.
+
+| Token              | Hex       | Uso                           | Contraste sobre `#141110` |
+| ------------------ | --------- | ----------------------------- | ------------------------- |
+| `--bg`             | `#141110` | Fondo de página               | —                         |
+| `--surface`        | `#1C1816` | Tarjetas y secciones alternas | —                         |
+| `--surface-raised` | `#241F1C` | Modales y elementos elevados  | —                         |
+| `--border-subtle`  | `#2B2522` | Separadores decorativos       | 1.24:1 · solo decorativo  |
+| `--border-strong`  | `#77695D` | Bordes de inputs y controles  | **3.55:1** ✓ UI           |
+| `--ink-900`        | `#F4EEE4` | Texto principal               | **16.28:1** ✓ AAA         |
+| `--ink-700`        | `#CEC2B2` | Texto de apoyo                | **10.72:1** ✓ AAA         |
+| `--ink-500`        | `#9A8C7B` | Metadatos, placeholders       | **5.74:1** ✓ AA           |
+
+> `--border-strong` empezó en `#5C5148` y se quedaba en **2.44:1**, por debajo del mínimo de
+> 3:1 que el tema claro ya exigía para controles. Es el error típico de una paleta oscura:
+> bajar el contraste porque "se ve más elegante", y dejar el texto secundario ilegible para
+> quien mira el móvil al sol.
+
+## Marca — latón
+
+La terracota del tema claro **no sobrevive al carbón**: se apaga y se ensucia. El latón
+mantiene el calor pero gana luz, y es lo que separa "elegante" de "rústico".
+
+La escala se **invierte**: en claro los números altos son los oscuros; en oscuro son los
+luminosos.
+
+| Token         | Hex       | Uso                                             |
+| ------------- | --------- | ----------------------------------------------- |
+| `--brand-50`  | `#201A12` | Fondo de hover muy sutil                        |
+| `--brand-100` | `#2E2517` | Fondo de badge, chip seleccionado               |
+| `--brand-200` | `#453718` | Bordes de acento                                |
+| `--brand-300` | `#6B551F` | Elementos decorativos                           |
+| `--brand-400` | `#8F7223` | Iconografía — 4.12:1 sobre el fondo             |
+| `--brand-500` | `#B08D26` | UI y texto grande — 5.98:1                      |
+| `--brand-600` | `#C9A227` | **Botón primario**, con texto oscuro — 7.77:1 ✓ |
+| `--brand-700` | `#DCC06A` | Hover, anillo de foco, enlaces — 10.55:1 ✓      |
+| `--brand-800` | `#E8D391` | Estado activo/pulsado                           |
+| `--brand-900` | `#F2E6BF` | Texto de acento sobre superficies elevadas      |
+
+> **El botón primario cambia de color de texto.** En claro es `brand-600` con texto blanco;
+> en oscuro es `brand-600` (latón) con texto **oscuro** encima. Un latón luminoso con letras
+> blancas no se lee.
+
+## Semánticos, aclarados
+
+| Token       | Hex       | Contraste sobre `#141110` |
+| ----------- | --------- | ------------------------- |
+| `--success` | `#7FB495` | **7.93:1** ✓ AAA          |
+| `--warning` | `#E8C87E` | **11.63:1** ✓ AAA         |
+| `--danger`  | `#E08A80` | **7.26:1** ✓ AAA          |
+
+El `danger` de la paleta clara (`#A85B52`) es un rojo oscuro que sobre carbón desaparece.
+Aclarado, sigue leyéndose como alarma sin gritar.
+
+## Lo que cambia de papel
+
+**Los pasteles pierden su función.** Un fondo pastel con texto claro encima no contrasta, así
+que en oscuro se convierten en tintes muy apagados para insignias, siempre con `--ink-900`
+encima: `#2F2630` · `#222B31` · `#33261F`.
+
+**Las sombras dejan de separar planos.** Una sombra negra sobre carbón es invisible. En
+oscuro lo que separa es la **luz**: el trabajo lo hace `--surface-raised`, y las sombras
+quedan casi anuladas.
+
+---
+
+# Movimiento
+
+Duraciones y curvas son tokens, no valores sueltos por los componentes. Si cada transición
+elige la suya, el sitio se siente descoordinado aunque cada pieza por separado esté bien.
+
+| Token               | Valor                       | Para                           |
+| ------------------- | --------------------------- | ------------------------------ |
+| `--duracion-rapida` | `150ms`                     | Hover, foco, cambios de estado |
+| `--duracion-media`  | `320ms`                     | Entradas y salidas             |
+| `--duracion-lenta`  | `600ms`                     | Revelados al hacer scroll      |
+| `--curva-salida`    | `cubic-bezier(.22,1,.36,1)` | Decelera al final              |
+| `--curva-suave`     | `cubic-bezier(.65,0,.35,1)` | Simétrica, para bucles         |
+
+Las curvas salen despacio y entran rápido: es lo que hace que un movimiento parezca material
+en vez de mecánico. Nada usa `linear` salvo lo que gira en bucle.
+
+**El movimiento reducido no se comprueba en cada componente.** `tokens.css` anula las
+duraciones de toda animación y transición cuando el sistema lo pide, así que un elemento que
+debía entrar deslizándose aparece de golpe, en su sitio. Hay personas a las que las
+animaciones les provocan mareo o migraña; no es una preferencia estética.
 
 ---
 
