@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Karla } from "next/font/google";
+import { Instrument_Serif, Karla } from "next/font/google";
 import "./globals.css";
 
 /**
@@ -20,19 +20,22 @@ const karla = Karla({
 });
 
 /**
- * Cormorant Garamond para títulos. Una garalda clásica de alto contraste —los
- * trazos finos muy finos, los gruesos muy gruesos—, que es de donde viene su
- * aire de imprenta antigua.
+ * Instrument Serif para títulos, y se usa en ITÁLICA.
  *
- * SE PIDEN PESOS ALTOS a propósito. En su peso normal, sobre fondo oscuro, los
- * trazos finos casi desaparecen y el titular se ve enfermizo. A 500 y 600
- * aguanta el carbón y gana presencia sin volverse pesada.
+ * Su itálica no es la redonda inclinada: tiene formas propias, con enlaces y
+ * remates que vienen de la escritura a mano. Es lo que da ese aire semi-cursivo
+ * sin caer en una tipografía de caligrafía, que a tamaño grande se lee mal y
+ * envejece fatal.
+ *
+ * Solo trae un peso, y es correcto para un display: una serif de alto contraste
+ * en negrita se empasta y pierde justo los trazos finos que la hacen elegante.
  */
-const cormorant = Cormorant_Garamond({
+const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
-  variable: "--font-cormorant",
+  variable: "--font-instrument",
   display: "swap",
-  weight: ["400", "500", "600"],
+  weight: "400",
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -59,7 +62,7 @@ export default function RootLayout({
     <html
       lang="es-MX"
       data-tema="oscuro"
-      className={`${karla.variable} ${cormorant.variable}`}
+      className={`${karla.variable} ${instrumentSerif.variable}`}
     >
       <body>{children}</body>
     </html>

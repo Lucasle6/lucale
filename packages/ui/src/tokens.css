@@ -60,10 +60,11 @@
   --color-danger: #a85b52; /* 4.90:1 ✓ con blanco */
 
   /* ── Tipografía ────────────────────────────────────────────────────────
-     Cormorant Garamond para títulos: garalda clásica de alto contraste, con
-     aire de imprenta. Karla para interfaz: grotesca con carácter, legible en
-     tamaños pequeños y sin el aire genérico de las neutras de sistema. */
-  --font-display: var(--font-cormorant), "Times New Roman", Georgia, serif;
+     Instrument Serif para títulos, EN ITÁLICA: sus formas cursivas vienen de
+     la escritura a mano, con enlaces y remates que una redonda inclinada no
+     tiene. Karla para interfaz: grotesca con carácter, legible en tamaños
+     pequeños y sin el aire genérico de las neutras de sistema. */
+  --font-display: var(--font-instrument), "Times New Roman", Georgia, serif;
   --font-sans: var(--font-karla), system-ui, sans-serif;
 
   /* ── Radios ────────────────────────────────────────────────────────────
@@ -259,11 +260,13 @@
   h3 {
     font-family: var(--font-display);
     line-height: 1.2;
-    /* Peso 500: Cormorant en normal tiene trazos finísimos que sobre carbón
-       casi desaparecen. Y un interletrado ligeramente negativo, porque las
-       garaldas a tamaño grande se ven sueltas con el espaciado por defecto. */
-    font-weight: 500;
-    letter-spacing: -0.015em;
+    /* La ITÁLICA es la que da el aire semi-cursivo: en Instrument Serif no es
+       la redonda inclinada, sino un dibujo distinto, con enlaces de pluma.
+       Interletrado ligeramente negativo porque a tamaño grande esta serif se
+       ve suelta con el espaciado por defecto. */
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
 
   /* El foco SIEMPRE visible. Una interfaz delicada que no se puede navegar

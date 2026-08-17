@@ -1,20 +1,30 @@
 import Link from "next/link";
 import type { ReactElement } from "react";
-import { getCartServer, listCategories } from "../lib/api";
+import { getCartServer } from "../lib/api";
 
 /**
  * Cabecera de la tienda.
  *
- * Es un Server Component: las categorías se leen en el servidor y llegan ya
- * dentro del HTML. Un rastreador de buscador ve los enlaces sin ejecutar nada.
+ * NAVEGACIÓN FIJA, no por categorías. Antes listaba las siete categorías del
+ * catálogo, que competían entre sí y dejaban fuera lo que de verdad convierte a
+ * alguien que llega por primera vez: saber quién está detrás y cómo preguntar.
+ * Las categorías siguen a un clic, dentro de la tienda, que es donde se buscan.
+ *
+ * Es un Server Component: el carrito se lee en el servidor y llega dentro del
+ * HTML. Un rastreador ve los enlaces sin ejecutar nada.
  */
+const ENLACES = [
+  { href: "/productos", texto: "Tienda" },
+  { href: "/nosotros", texto: "Nosotros" },
+  { href: "/contacto", texto: "Contacto" },
+  { href: "/preguntas", texto: "Preguntas frecuentes" },
+] as const;
+
 export async function Header(): Promise<ReactElement> {
-  // Las dos consultas van en paralelo. La de categorías se cachea 5 minutos;
-  // la del carrito nunca, porque depende de quién mire.
-  const [{ items: categorias }, carrito] = await Promise.all([
-    listCategories(),
-    getCartServer(),
-  ]);
+  // Ya no se consultan las categorías: la navegación pasó a ser fija. Es una
+  // consulta menos por página, y además la cabecera deja de depender de que la
+  // API responda para poder pintarse.
+  const carrito = await getCartServer();
 
   return (
     <header className="border-b border-border-subtle bg-bg/90 backdrop-blur">
@@ -27,16 +37,11 @@ export async function Header(): Promise<ReactElement> {
         </Link>
 
         <div className="flex items-center gap-2">
-          <nav aria-label="Categorías">
+          <nav aria-label="Principal">
             <ul className="flex flex-wrap items-center gap-1">
-              <li>
-                <EnlaceNav href="/productos">Todo</EnlaceNav>
-              </li>
-              {categorias.map((categoria) => (
-                <li key={categoria.id}>
-                  <EnlaceNav href={`/productos?categoria=${categoria.slug}`}>
-                    {categoria.name}
-                  </EnlaceNav>
+              {ENLACES.map((enlace) => (
+                <li key={enlace.href}>
+                  <EnlaceNav href={enlace.href}>{enlace.texto}</EnlaceNav>
                 </li>
               ))}
             </ul>
