@@ -79,6 +79,11 @@ export function Footer(): ReactElement {
                 Preguntas frecuentes
               </Link>
             </li>
+            <li>
+              <Link href="/privacidad" className="hover:text-ink-700 hover:underline">
+                Privacidad
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>

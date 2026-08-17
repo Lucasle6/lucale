@@ -60,6 +60,10 @@ const ENVIOS: Pregunta[] = [
     ),
   },
   {
+    q: "¿Con qué paquetería envían?",
+    a: <p>Con DHL.</p>,
+  },
+  {
     q: "¿Puedo recogerlo en persona?",
     a: (
       <p>
@@ -109,7 +113,12 @@ const PRODUCTO: Pregunta[] = [
 const PAGOS: Pregunta[] = [
   {
     q: "¿Cómo puedo pagar?",
-    a: <p>Con tarjeta de crédito o débito.</p>,
+    a: (
+      <p>
+        Con tarjeta de crédito o débito. Por ahora es el único método: todavía no
+        aceptamos pago en OXXO ni transferencia.
+      </p>
+    ),
   },
   {
     q: "¿Es seguro pagar aquí?",
