@@ -1,7 +1,7 @@
-import { Button } from "@bodegon/ui";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { Header } from "../components/header";
+import { Hero } from "../components/hero";
 import { ProductCard } from "../components/product-card";
 import { listProducts } from "../lib/api";
 
@@ -10,28 +10,24 @@ export default async function HomePage(): Promise<ReactElement> {
   // ocurre en el servidor y el HTML llega completo al navegador.
   const { items } = await listProducts({ limit: 6 });
 
+  // El primero del catálogo protagoniza el hero. Cuando no tenga foto, el
+  // componente pone el marcador provisional en su lugar.
+  const primero = items[0];
+  const destacadoDelHero =
+    primero === undefined
+      ? undefined
+      : {
+          nombre: primero.name,
+          slug: primero.slug,
+          imagenUrl: primero.image?.url ?? null,
+        };
+
   return (
     <>
       <Header />
 
       <main>
-        <section className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-          <p className="text-sm tracking-widest text-brand-600 uppercase">
-            Hechas con calma
-          </p>
-          <h1 className="mt-3 max-w-2xl font-display text-4xl leading-tight text-ink-900 sm:text-5xl">
-            Salsas y aceites para cocinar todos los días
-          </h1>
-          <p className="mt-4 max-w-prose text-lg text-ink-700">
-            Chiles tostados en comal y aceites infusionados en frío, en tandas pequeñas.
-            Sin conservadores, sin prisa.
-          </p>
-          <div className="mt-8">
-            <Link href="/productos">
-              <Button size="lg">Ver el catálogo</Button>
-            </Link>
-          </div>
-        </section>
+        <Hero destacado={destacadoDelHero} />
 
         <section className="border-t border-border-subtle bg-surface/60">
           <div className="mx-auto max-w-6xl px-6 py-16">

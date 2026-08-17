@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
 import { Footer } from "../../page";
 import { Header } from "../../../components/header";
-import { ProductoFlotante, Revelar } from "@bodegon/ui";
+import { MarcadorFoto, ProductoFlotante, Revelar } from "@bodegon/ui";
 import { NotFound, SITE_URL, getProduct, imageUrl } from "../../../lib/api";
 import type { ProductDetail } from "../../../lib/api";
 import { SelectorTamano } from "./selector-tamano";
@@ -114,20 +114,17 @@ export default async function ProductoPage({
 
 function Galeria({ producto }: { producto: ProductDetail }): ReactElement {
   if (producto.images.length === 0) {
+    // Marcador provisional, no un hueco vacío: sobre fondo oscuro un rectángulo
+    // sin nada se lee como "aquí falló algo", no como "aquí irá una foto".
     return (
-      <div
-        className="grid aspect-square place-items-center rounded-lg bg-surface text-brand-300"
-        aria-hidden="true"
-      >
-        <svg className="size-16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="1.5"
-            d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M18 9h.008M2.25 19.5V4.5A2.25 2.25 0 0 1 4.5 2.25h15A2.25 2.25 0 0 1 21.75 4.5v15a2.25 2.25 0 0 1-2.25 2.25h-15A2.25 2.25 0 0 1 2.25 19.5Z"
+      <ProductoFlotante className="py-8">
+        <div className="aspect-[3/4] w-full max-w-sm">
+          <MarcadorFoto
+            semilla={producto.slug}
+            alt={`${producto.name} — foto pendiente de la sesión`}
           />
-        </svg>
-      </div>
+        </div>
+      </ProductoFlotante>
     );
   }
 

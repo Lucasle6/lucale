@@ -127,6 +127,48 @@
 }
 
 /**
+ * Luz que se desplaza detrás del hero.
+ *
+ * Da el movimiento que pediría un GIF de fondo, sin sus tres problemas: un GIF
+ * pesa megas, se pixela en pantalla grande y no se puede detener para quien
+ * pidió movimiento reducido. Esto pesa cero bytes de red y se detiene solo.
+ *
+ * Ciclos LARGOS y descompasados —28s, 34s, 22s—: al no ser múltiplos entre sí,
+ * el conjunto tarda muchísimo en repetir la misma composición. Un bucle corto
+ * se reconoce enseguida y entonces parece un adorno; uno largo se percibe como
+ * que la luz de la habitación cambia.
+ */
+@keyframes deriva-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, -4%, 0) scale(1.12);
+  }
+}
+
+@keyframes deriva-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(-7%, 5%, 0) scale(1);
+  }
+}
+
+@keyframes latido-tenue {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/**
  * TEMA OSCURO — solo la tienda.
  *
  * Se activa poniendo `data-tema="oscuro"` en el <html> de apps/web. El panel no
