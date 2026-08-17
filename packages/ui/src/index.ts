@@ -17,6 +17,12 @@ export type { ButtonProps, ButtonSize, ButtonVariant } from "./button";
 export { Input, Select, Textarea } from "./form";
 export type { InputProps, SelectProps, TextareaProps } from "./form";
 
+export { CarruselArco } from "./carrusel-arco";
+export type { CarruselArcoProps } from "./carrusel-arco";
+
+export { CarruselCentrado } from "./carrusel-centrado";
+export type { CarruselCentradoProps } from "./carrusel-centrado";
+
 export { Carrusel } from "./carrusel";
 export type { CarruselProps } from "./carrusel";
 
