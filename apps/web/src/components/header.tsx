@@ -46,14 +46,30 @@ export async function Header(): Promise<ReactElement> {
             href="/carrito"
             className="flex items-center gap-2 rounded-md border border-border-strong px-3 py-1.5 text-sm text-ink-900 transition-colors hover:border-brand-400"
           >
-            <span aria-hidden="true">Carrito</span>
+            {/* La palabra "Carrito" se sustituye por el icono, pero el <span>
+                sr-only de abajo NO se toca: es lo que oye un lector de pantalla.
+                Un icono sin nombre accesible es un botón mudo — el usuario oye
+                "enlace" y nada más. */}
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="size-5"
+            >
+              {/* Asa de la bolsa */}
+              <path d="M8 8V6a4 4 0 0 1 8 0v2" />
+              {/* Cuerpo */}
+              <path d="M4.5 8h15l-1.1 11a2 2 0 0 1-2 1.8H7.6a2 2 0 0 1-2-1.8L4.5 8z" />
+            </svg>
             {carrito.itemCount > 0 ? (
-              <span className="grid min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs text-white">
+              <span className="grid min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-medium text-bg">
                 {carrito.itemCount}
               </span>
             ) : null}
-            {/* El texto visible dice solo "Carrito"; el lector de pantalla
-                recibe la frase completa con la cantidad. */}
             <span className="sr-only">
               Ver carrito
               {carrito.itemCount > 0

@@ -17,6 +17,9 @@ export type { ButtonProps, ButtonSize, ButtonVariant } from "./button";
 export { Input, Select, Textarea } from "./form";
 export type { InputProps, SelectProps, TextareaProps } from "./form";
 
+export { Carrusel } from "./carrusel";
+export type { CarruselProps } from "./carrusel";
+
 export { MarcadorFoto } from "./marcador-foto";
 export type { MarcadorFotoProps } from "./marcador-foto";
 

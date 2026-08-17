@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Cormorant_Garamond, Karla } from "next/font/google";
 import "./globals.css";
 
 /**
@@ -8,17 +8,31 @@ import "./globals.css";
  * rápido, evita un salto de red y no obliga a abrir la CSP a un dominio
  * externo (Día 12).
  */
-const inter = Inter({
+/**
+ * Karla para interfaz. Grotesca con carácter propio, no neutra hasta lo
+ * anónimo: Inter es la tipografía por defecto de medio internet y de casi todo
+ * lo autogenerado, y precisamente por eso se reconoce al instante.
+ */
+const karla = Karla({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-karla",
   display: "swap",
 });
 
-const fraunces = Fraunces({
+/**
+ * Cormorant Garamond para títulos. Una garalda clásica de alto contraste —los
+ * trazos finos muy finos, los gruesos muy gruesos—, que es de donde viene su
+ * aire de imprenta antigua.
+ *
+ * SE PIDEN PESOS ALTOS a propósito. En su peso normal, sobre fondo oscuro, los
+ * trazos finos casi desaparecen y el titular se ve enfermizo. A 500 y 600
+ * aguanta el carbón y gana presencia sin volverse pesada.
+ */
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
-  variable: "--font-fraunces",
+  variable: "--font-cormorant",
   display: "swap",
-  axes: ["SOFT", "WONK", "opsz"],
+  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -45,7 +59,7 @@ export default function RootLayout({
     <html
       lang="es-MX"
       data-tema="oscuro"
-      className={`${inter.variable} ${fraunces.variable}`}
+      className={`${karla.variable} ${cormorant.variable}`}
     >
       <body>{children}</body>
     </html>

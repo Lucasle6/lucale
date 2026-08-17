@@ -3,7 +3,7 @@ import { Button, Card, EmptyState } from "@bodegon/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactElement } from "react";
-import { Footer } from "../page";
+import { Footer } from "../../components/footer";
 import { Header } from "../../components/header";
 import { FILES_URL, getCartServer } from "../../lib/api";
 import { LineasDelCarrito } from "./lineas";

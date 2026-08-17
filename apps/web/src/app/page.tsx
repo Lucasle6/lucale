@@ -1,8 +1,11 @@
 import Link from "next/link";
 import type { ReactElement } from "react";
+import { Footer } from "../components/footer";
+import { FormularioContacto } from "../components/formulario-contacto";
 import { Header } from "../components/header";
 import { Hero } from "../components/hero";
 import { ProductCard } from "../components/product-card";
+import { Resenas } from "../components/resenas";
 import { listProducts } from "../lib/api";
 
 export default async function HomePage(): Promise<ReactElement> {
@@ -49,44 +52,10 @@ export default async function HomePage(): Promise<ReactElement> {
         </section>
       </main>
 
+      <Resenas />
+      <FormularioContacto />
+
       <Footer />
     </>
-  );
-}
-
-export function Footer(): ReactElement {
-  return (
-    <footer className="border-t border-border-subtle">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-10 text-sm text-ink-500">
-        <p>LuCaLe · Cocina mexicana · Hecho en Zapopan, Jalisco</p>
-
-        {/* Nosotros y Contacto van aquí y no en la cabecera a propósito: arriba
-            compiten con las categorías, que es lo que alguien viene a buscar. */}
-        <nav aria-label="Enlaces del sitio">
-          <ul className="flex flex-wrap gap-x-5 gap-y-2">
-            <li>
-              <Link href="/nosotros" className="hover:text-ink-700 hover:underline">
-                Nosotros
-              </Link>
-            </li>
-            <li>
-              <Link href="/contacto" className="hover:text-ink-700 hover:underline">
-                Contacto
-              </Link>
-            </li>
-            <li>
-              <Link href="/preguntas" className="hover:text-ink-700 hover:underline">
-                Preguntas frecuentes
-              </Link>
-            </li>
-            <li>
-              <Link href="/privacidad" className="hover:text-ink-700 hover:underline">
-                Privacidad
-              </Link>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </footer>
   );
 }

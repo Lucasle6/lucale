@@ -7,7 +7,7 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactElement } from "react";
-import { Footer } from "../page";
+import { Footer } from "../../components/footer";
 import { Header } from "../../components/header";
 
 export const metadata: Metadata = {

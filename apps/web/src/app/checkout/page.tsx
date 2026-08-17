@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactElement } from "react";
 import { Header } from "../../components/header";
 import { getCartServer } from "../../lib/api";
-import { Footer } from "../page";
+import { Footer } from "../../components/footer";
 import { FormularioDeCheckout } from "./formulario";
 
 export const metadata: Metadata = {

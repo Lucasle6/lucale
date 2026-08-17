@@ -2,7 +2,7 @@ import { Button, Card, EmptyState } from "@bodegon/ui";
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactElement } from "react";
-import { Footer } from "../page";
+import { Footer } from "../../components/footer";
 import { Header } from "../../components/header";
 import { ProductCard } from "../../components/product-card";
 import { listCategories, listProducts } from "../../lib/api";

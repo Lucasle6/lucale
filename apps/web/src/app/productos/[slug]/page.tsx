@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactElement } from "react";
-import { Footer } from "../../page";
+import { Footer } from "../../../components/footer";
 import { Header } from "../../../components/header";
 import { MarcadorFoto, ProductoFlotante, Revelar } from "@bodegon/ui";
 import { NotFound, SITE_URL, getProduct, imageUrl } from "../../../lib/api";

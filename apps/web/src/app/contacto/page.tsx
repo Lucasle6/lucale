@@ -1,7 +1,8 @@
 import { Revelar } from "@bodegon/ui";
 import type { Metadata } from "next";
 import type { ReactElement } from "react";
-import { Footer } from "../page";
+import { Footer } from "../../components/footer";
+import { FormularioContacto } from "../../components/formulario-contacto";
 import { Header } from "../../components/header";
 import { CORREOS, UBICACION, WHATSAPP_EU, WHATSAPP_MX } from "../../lib/contacto";
 
@@ -14,13 +15,10 @@ export const metadata: Metadata = {
 /**
  * Página de contacto.
  *
- * SIN FORMULARIO, y es una decisión, no una carencia. Un formulario necesita
- * enviar correos, y hoy el mailer del proyecto escribe en el log: el mensaje se
- * perdería y el cliente se quedaría creyendo que llegó. Es peor que no tener
- * formulario. Cuando conectemos un proveedor de correo real, se añade aquí.
- *
- * Mientras tanto WhatsApp, que además es como la gente escribe de verdad a una
- * marca pequeña en México.
+ * El formulario del final NO manda un correo: compone un mensaje de WhatsApp.
+ * Hoy el mailer del proyecto escribe en el log, así que un envío "de verdad" se
+ * tragaría el mensaje dejando al cliente convencido de que llegó. Ver
+ * `components/formulario-contacto.tsx`.
  */
 
 export default function ContactoPage(): ReactElement {
@@ -113,6 +111,8 @@ export default function ContactoPage(): ReactElement {
           </p>
         </Revelar>
       </main>
+
+      <FormularioContacto />
 
       <Footer />
     </>

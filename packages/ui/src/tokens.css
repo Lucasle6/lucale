@@ -60,10 +60,11 @@
   --color-danger: #a85b52; /* 4.90:1 ✓ con blanco */
 
   /* ── Tipografía ────────────────────────────────────────────────────────
-     Fraunces para títulos: cálida y artesanal sin caer en lo rústico.
-     Inter para interfaz: neutra y legible en tamaños pequeños. */
-  --font-display: var(--font-fraunces), Georgia, serif;
-  --font-sans: var(--font-inter), system-ui, sans-serif;
+     Cormorant Garamond para títulos: garalda clásica de alto contraste, con
+     aire de imprenta. Karla para interfaz: grotesca con carácter, legible en
+     tamaños pequeños y sin el aire genérico de las neutras de sistema. */
+  --font-display: var(--font-cormorant), "Times New Roman", Georgia, serif;
+  --font-sans: var(--font-karla), system-ui, sans-serif;
 
   /* ── Radios ────────────────────────────────────────────────────────────
      Suaves sin ser infantiles. */
@@ -258,11 +259,11 @@
   h3 {
     font-family: var(--font-display);
     line-height: 1.2;
-    /* Fraunces es una fuente variable: se le pide un peso concreto y un eje
-       de "suavidad" (SOFT) que redondea los remates. */
-    font-variation-settings:
-      "SOFT" 30,
-      "WONK" 1;
+    /* Peso 500: Cormorant en normal tiene trazos finísimos que sobre carbón
+       casi desaparecen. Y un interletrado ligeramente negativo, porque las
+       garaldas a tamaño grande se ven sueltas con el espaciado por defecto. */
+    font-weight: 500;
+    letter-spacing: -0.015em;
   }
 
   /* El foco SIEMPRE visible. Una interfaz delicada que no se puede navegar

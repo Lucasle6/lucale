@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactElement } from "react";
 import { Header } from "../../../components/header";
-import { Footer } from "../../page";
+import { Footer } from "../../../components/footer";
 
 export const metadata: Metadata = {
   title: "Pago cancelado",

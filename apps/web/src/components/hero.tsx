@@ -33,8 +33,12 @@ export interface HeroProps {
 }
 
 export function Hero({ destacado }: HeroProps): ReactElement {
+  // `100svh` y no `100vh`: en móvil, `vh` mide la ventana SIN la barra del
+  // navegador, así que el hero queda cortado por abajo hasta que el usuario
+  // hace scroll y la barra se esconde. `svh` mide la ventana pequeña —la que de
+  // verdad se ve— y encaja bien desde el primer fotograma.
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative flex min-h-[100svh] items-center overflow-hidden">
       {/* ── Capas de luz ────────────────────────────────────────────────────
           `aria-hidden` y `pointer-events-none`: son iluminación, no contenido.
           No significan nada para un lector de pantalla y no deben interceptar
@@ -69,7 +73,7 @@ export function Hero({ destacado }: HeroProps): ReactElement {
         />
       </div>
 
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 sm:py-28 lg:grid-cols-[1.1fr_1fr] lg:items-center">
+      <div className="mx-auto grid w-full max-w-6xl gap-10 px-6 py-24 lg:grid-cols-[1.1fr_1fr] lg:items-center">
         <div>
           <Revelar>
             <p className="text-sm tracking-widest text-brand-700 uppercase">
