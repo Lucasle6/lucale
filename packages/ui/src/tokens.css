@@ -65,6 +65,8 @@
      grotesca con carácter, legible en tamaños pequeños y sin el aire genérico
      de las neutras de sistema. */
   --font-display: var(--font-playfair), "Times New Roman", Georgia, serif;
+  /* Caligráfica, SOLO para el titular del hero. Ver la nota en el layout. */
+  --font-firma: var(--font-firma-fuente), "Brush Script MT", cursive;
   --font-sans: var(--font-karla), system-ui, sans-serif;
 
   /* ── Radios ────────────────────────────────────────────────────────────

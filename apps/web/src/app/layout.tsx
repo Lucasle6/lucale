@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Karla, Playfair_Display } from "next/font/google";
+import { Karla, Oooh_Baby, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 /**
@@ -40,6 +40,21 @@ const playfair = Playfair_Display({
   style: ["normal", "italic"],
 });
 
+/**
+ * Oooh Baby: caligráfica de un solo peso, trazo fino y muy inclinado.
+ *
+ * NO sustituye a Playfair como fuente de todos los títulos: se reserva para el
+ * titular del hero. Una caligráfica en cada h2 y h3 del sitio deja de leerse
+ * como firma y pasa a leerse como ruido, y a tamaños medianos su trazo fino se
+ * vuelve difícil de seguir.
+ */
+const ooohBaby = Oooh_Baby({
+  subsets: ["latin"],
+  variable: "--font-firma-fuente",
+  display: "swap",
+  weight: "400",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "LuCaLe",
@@ -64,7 +79,7 @@ export default function RootLayout({
     <html
       lang="es-MX"
       data-tema="oscuro"
-      className={`${karla.variable} ${playfair.variable}`}
+      className={`${karla.variable} ${playfair.variable} ${ooohBaby.variable}`}
     >
       <body>{children}</body>
     </html>
