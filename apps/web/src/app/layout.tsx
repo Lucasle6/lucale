@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Karla, Oooh_Baby, Playfair_Display } from "next/font/google";
+import { Karla, Updock } from "next/font/google";
 import "./globals.css";
 
 /**
@@ -20,37 +20,25 @@ const karla = Karla({
 });
 
 /**
- * Playfair Display para títulos, y se usa en ITÁLICA.
+ * Updock para títulos. Caligráfica formal, de un solo peso.
  *
- * Es una didona: contraste extremo entre el trazo grueso y el fino, y remates
- * finísimos y horizontales. De ahí su aire de revista y de portada de libro.
+ * Es una script de pluma: trazo fino, remates de entrada y salida en cada
+ * letra, y ascendentes largas. Da el aire manuscrito y elegante que se buscaba.
  *
- * Su itálica no es la redonda inclinada — tiene formas propias, con enlaces de
- * pluma, que es lo que da el aire semi-cursivo pedido.
+ * NO SE LE APLICA `italic`. Ya está inclinada por dibujo; pedirle cursiva
+ * encima haría que el navegador la incline artificialmente y deforme las letras
+ * —lo que se llama una falsa cursiva—.
  *
- * SE PIDEN PESOS ALTOS. En una didona el trazo fino es MUY fino; a peso normal
- * y sobre carbón, esos trazos se rompen y el titular parece descolorido. A 500
- * y 600 el contraste se mantiene pero la letra aguanta el fondo oscuro.
+ * TAMPOCO SE LE APLICA INTERLETRADO NEGATIVO. En una script las letras se
+ * enlazan, y apretarlas más las hace chocar entre sí en vez de encadenarlas.
+ *
+ * Su punto débil es el tamaño pequeño: con un trazo tan fino, un título de 18px
+ * sobre carbón pierde definición. Por eso los títulos de sección se piden más
+ * grandes de lo que pedirían con una serif normal.
  */
-const playfair = Playfair_Display({
+const updock = Updock({
   subsets: ["latin"],
-  variable: "--font-playfair",
-  display: "swap",
-  weight: ["500", "600"],
-  style: ["normal", "italic"],
-});
-
-/**
- * Oooh Baby: caligráfica de un solo peso, trazo fino y muy inclinado.
- *
- * NO sustituye a Playfair como fuente de todos los títulos: se reserva para el
- * titular del hero. Una caligráfica en cada h2 y h3 del sitio deja de leerse
- * como firma y pasa a leerse como ruido, y a tamaños medianos su trazo fino se
- * vuelve difícil de seguir.
- */
-const ooohBaby = Oooh_Baby({
-  subsets: ["latin"],
-  variable: "--font-firma-fuente",
+  variable: "--font-updock",
   display: "swap",
   weight: "400",
 });
@@ -79,7 +67,7 @@ export default function RootLayout({
     <html
       lang="es-MX"
       data-tema="oscuro"
-      className={`${karla.variable} ${playfair.variable} ${ooohBaby.variable}`}
+      className={`${karla.variable} ${updock.variable}`}
     >
       <body>{children}</body>
     </html>

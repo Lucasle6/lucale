@@ -45,7 +45,7 @@ export default function PrivacidadPage(): ReactElement {
 
         <div className="mt-12 flex flex-col gap-10 text-ink-700">
           <section>
-            <h2 className="font-display text-2xl text-ink-900">Quién es responsable</h2>
+            <h2 className="font-display text-4xl text-ink-900">Quién es responsable</h2>
             <p className="mt-3">
               <strong className="text-ink-900">{RESPONSABLE}</strong>, persona física con
               actividad empresarial, con domicilio de operación en {UBICACION.ciudad},{" "}
@@ -56,7 +56,7 @@ export default function PrivacidadPage(): ReactElement {
           </section>
 
           <section>
-            <h2 className="font-display text-2xl text-ink-900">Qué datos recabamos</h2>
+            <h2 className="font-display text-4xl text-ink-900">Qué datos recabamos</h2>
             <p className="mt-3">Para procesar y entregar un pedido te pedimos:</p>
             <ul className="mt-3 list-disc space-y-1 pl-6">
               <li>Nombre de quien recibe</li>
@@ -81,7 +81,7 @@ export default function PrivacidadPage(): ReactElement {
           </section>
 
           <section>
-            <h2 className="font-display text-2xl text-ink-900">Para qué los usamos</h2>
+            <h2 className="font-display text-4xl text-ink-900">Para qué los usamos</h2>
             <ul className="mt-3 list-disc space-y-1 pl-6">
               <li>Preparar, cobrar y enviar tu pedido</li>
               <li>Contactarte sobre ese pedido si hace falta</li>
@@ -94,7 +94,7 @@ export default function PrivacidadPage(): ReactElement {
           </section>
 
           <section>
-            <h2 className="font-display text-2xl text-ink-900">Con quién se comparten</h2>
+            <h2 className="font-display text-4xl text-ink-900">Con quién se comparten</h2>
             <p className="mt-3">
               Solo con quien hace falta para que el pedido llegue y se cobre:
             </p>
@@ -117,7 +117,7 @@ export default function PrivacidadPage(): ReactElement {
           </section>
 
           <section>
-            <h2 className="font-display text-2xl text-ink-900">Tus derechos</h2>
+            <h2 className="font-display text-4xl text-ink-900">Tus derechos</h2>
             <p className="mt-3">
               Tienes derecho a <strong className="text-ink-900">acceder</strong> a tus
               datos, <strong className="text-ink-900">rectificarlos</strong> si son
@@ -142,7 +142,7 @@ export default function PrivacidadPage(): ReactElement {
           </section>
 
           <section>
-            <h2 className="font-display text-2xl text-ink-900">Cambios a este aviso</h2>
+            <h2 className="font-display text-4xl text-ink-900">Cambios a este aviso</h2>
             <p className="mt-3">
               Si cambiamos lo que recabamos o para qué lo usamos, actualizaremos esta
               página y la fecha de arriba.

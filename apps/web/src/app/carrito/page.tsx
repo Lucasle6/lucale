@@ -56,7 +56,7 @@ export default async function CarritoPage(): Promise<ReactElement> {
 
             <aside className="lg:sticky lg:top-6 lg:self-start">
               <Card>
-                <h2 className="font-display text-xl text-ink-900">Resumen</h2>
+                <h2 className="font-display text-3xl text-ink-900">Resumen</h2>
 
                 <dl className="mt-4 flex flex-col gap-2 text-sm">
                   <div className="flex justify-between">
@@ -84,7 +84,7 @@ export default async function CarritoPage(): Promise<ReactElement> {
 
                 <div className="mt-4 flex justify-between border-t border-border-subtle pt-4">
                   <span className="text-ink-900">Total</span>
-                  <span className="font-display text-2xl text-ink-900">
+                  <span className="text-2xl font-medium text-ink-900 tabular-nums">
                     {formatMoney(totales.totalCents)}
                   </span>
                 </div>

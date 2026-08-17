@@ -60,13 +60,14 @@
   --color-danger: #a85b52; /* 4.90:1 ✓ con blanco */
 
   /* ── Tipografía ────────────────────────────────────────────────────────
-     Playfair Display para títulos, EN ITÁLICA: didona de contraste extremo,
-     con remates finísimos y formas cursivas de pluma. Karla para interfaz:
-     grotesca con carácter, legible en tamaños pequeños y sin el aire genérico
-     de las neutras de sistema. */
-  --font-display: var(--font-playfair), "Times New Roman", Georgia, serif;
-  /* Caligráfica, SOLO para el titular del hero. Ver la nota en el layout. */
-  --font-firma: var(--font-firma-fuente), "Brush Script MT", cursive;
+     Updock para títulos: caligráfica formal de pluma, con remates de entrada
+     y salida en cada letra. Karla para interfaz: grotesca con carácter,
+     legible en tamaños pequeños y sin el aire genérico de las de sistema.
+
+     El reparto no es decorativo: la script pone el carácter en los títulos y
+     la grotesca sostiene todo lo que hay que LEER. Una caligráfica en el cuerpo
+     de texto sería ilegible a los dos párrafos. */
+  --font-display: var(--font-updock), "Segoe Script", cursive;
   --font-sans: var(--font-karla), system-ui, sans-serif;
 
   /* ── Radios ────────────────────────────────────────────────────────────
@@ -262,14 +263,12 @@
   h3 {
     font-family: var(--font-display);
     line-height: 1.2;
-    /* La ITÁLICA da el aire semi-cursivo: no es la redonda inclinada, sino un
-       dibujo distinto con enlaces de pluma.
-
-       Peso 500 y no 400: en una didona el trazo fino es MUY fino, y a peso
-       normal sobre carbón se rompe y el titular se ve descolorido. */
-    font-style: italic;
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    /* Sin `italic` y sin interletrado negativo, a propósito. Updock ya viene
+       inclinada por dibujo: pedirle cursiva encima hace que el navegador la
+       incline por segunda vez y deforme las letras. Y en una script las letras
+       se enlazan — apretarlas las hace chocar en vez de encadenarlas. */
+    font-weight: 400;
+    letter-spacing: 0;
   }
 
   /* El foco SIEMPRE visible. Una interfaz delicada que no se puede navegar

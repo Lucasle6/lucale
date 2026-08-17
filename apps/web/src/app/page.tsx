@@ -35,7 +35,7 @@ export default async function HomePage(): Promise<ReactElement> {
         <section className="border-t border-border-subtle bg-surface/60">
           <div className="mx-auto max-w-6xl px-6 py-16">
             <div className="mb-8 flex items-end justify-between gap-4">
-              <h2 className="font-display text-2xl text-ink-900">Recién hechas</h2>
+              <h2 className="font-display text-4xl text-ink-900">Recién hechas</h2>
               <Link href="/productos" className="text-sm text-brand-700 hover:underline">
                 Ver todo →
               </Link>

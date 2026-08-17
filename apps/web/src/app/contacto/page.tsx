@@ -40,7 +40,7 @@ export default function ContactoPage(): ReactElement {
 
         <Revelar retraso={90}>
           <section className="mt-12 rounded-lg border border-border-subtle bg-surface p-6">
-            <h2 className="font-display text-xl text-ink-900">WhatsApp</h2>
+            <h2 className="font-display text-3xl text-ink-900">WhatsApp</h2>
             <p className="mt-1 text-ink-500">{WHATSAPP_MX.visible}</p>
 
             <div className="mt-5 flex flex-wrap gap-3">
@@ -69,7 +69,7 @@ export default function ContactoPage(): ReactElement {
 
         <Revelar retraso={140}>
           <section className="mt-6 rounded-lg border border-border-subtle bg-surface p-6">
-            <h2 className="font-display text-xl text-ink-900">Correo</h2>
+            <h2 className="font-display text-3xl text-ink-900">Correo</h2>
             <ul className="mt-3 flex flex-col gap-1">
               {CORREOS.map((correo) => (
                 <li key={correo}>
@@ -87,7 +87,7 @@ export default function ContactoPage(): ReactElement {
 
         <Revelar retraso={190}>
           <section className="mt-6 rounded-lg border border-border-subtle bg-surface p-6">
-            <h2 className="font-display text-xl text-ink-900">Dónde estamos</h2>
+            <h2 className="font-display text-3xl text-ink-900">Dónde estamos</h2>
             <p className="mt-3 text-ink-700">
               Producimos en{" "}
               <strong className="text-ink-900">

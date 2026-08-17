@@ -52,7 +52,7 @@ export default function NosotrosPage(): ReactElement {
         </Revelar>
 
         <Revelar retraso={190}>
-          <h2 className="mt-16 font-display text-2xl text-ink-900">Cómo lo hacemos</h2>
+          <h2 className="mt-16 font-display text-4xl text-ink-900">Cómo lo hacemos</h2>
           <p className="mt-5 text-lg leading-relaxed text-ink-700">
             Todo se hace de forma artesanal, con cuidado particular en cada salsa y cada
             receta, para poder ofrecer la misma calidad en cada gota. Nuestras salsas
@@ -66,7 +66,7 @@ export default function NosotrosPage(): ReactElement {
               destaca en vez de quedar enterrado en un párrafo: una cifra
               verificable convence más que tres adjetivos. */}
           <figure className="mt-10 border-l-2 border-brand-600 pl-6">
-            <p className="font-display text-2xl leading-snug text-ink-900">
+            <p className="font-display text-4xl leading-snug text-ink-900">
               Nuestros aceites reposan hasta 168 horas.
             </p>
             <figcaption className="mt-3 text-ink-500">

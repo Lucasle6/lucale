@@ -94,7 +94,7 @@ export function SelectorTamano({
       ) : null}
 
       <div className="flex items-baseline gap-3">
-        <p className="font-display text-3xl text-ink-900">
+        <p className="text-3xl font-medium text-ink-900 tabular-nums">
           {seleccionada.priceFormatted}
         </p>
         {seleccionada.inStock ? (

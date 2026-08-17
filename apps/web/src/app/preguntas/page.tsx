@@ -187,7 +187,7 @@ export default function PreguntasPage(): ReactElement {
         {SECCIONES.map((seccion, indice) => (
           <Revelar key={seccion.titulo} retraso={indice * 60}>
             <section className="mt-14">
-              <h2 className="font-display text-2xl text-ink-900">{seccion.titulo}</h2>
+              <h2 className="font-display text-4xl text-ink-900">{seccion.titulo}</h2>
 
               {/* <details> nativo y no un acordeón de JavaScript: se abre sin
                   esperar a que cargue nada, funciona con teclado sin escribir

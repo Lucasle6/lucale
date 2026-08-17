@@ -85,7 +85,7 @@ export function Hero({ destacado }: HeroProps): ReactElement {
               otro. Leído así se percibe como una frase que se compone, no como
               tres bloques que aparecen a la vez. */}
           <Revelar retraso={90}>
-            <h1 className="mt-4 max-w-2xl font-[family-name:var(--font-firma)] text-6xl leading-[1.15] font-normal tracking-normal text-ink-900 not-italic sm:text-7xl">
+            <h1 className="mt-4 max-w-2xl font-display text-6xl leading-[1.2] text-ink-900 sm:text-7xl">
               Salsas y aceites para cocinar todos los días
             </h1>
           </Revelar>

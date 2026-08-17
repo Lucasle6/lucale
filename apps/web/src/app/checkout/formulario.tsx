@@ -117,7 +117,7 @@ export function FormularioDeCheckout(): ReactElement {
   return (
     <form onSubmit={alEnviar} noValidate className="flex flex-col gap-6">
       <section className="flex flex-col gap-4">
-        <h2 className="font-display text-xl text-ink-900">Tus datos</h2>
+        <h2 className="font-display text-3xl text-ink-900">Tus datos</h2>
 
         <Input
           label="Correo electrónico"
@@ -135,7 +135,7 @@ export function FormularioDeCheckout(): ReactElement {
       </section>
 
       <section className="flex flex-col gap-4">
-        <h2 className="font-display text-xl text-ink-900">¿A dónde lo enviamos?</h2>
+        <h2 className="font-display text-3xl text-ink-900">¿A dónde lo enviamos?</h2>
 
         <Input
           label="Nombre de quien recibe"
