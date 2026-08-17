@@ -60,11 +60,11 @@
   --color-danger: #a85b52; /* 4.90:1 ✓ con blanco */
 
   /* ── Tipografía ────────────────────────────────────────────────────────
-     Instrument Serif para títulos, EN ITÁLICA: sus formas cursivas vienen de
-     la escritura a mano, con enlaces y remates que una redonda inclinada no
-     tiene. Karla para interfaz: grotesca con carácter, legible en tamaños
-     pequeños y sin el aire genérico de las neutras de sistema. */
-  --font-display: var(--font-instrument), "Times New Roman", Georgia, serif;
+     Playfair Display para títulos, EN ITÁLICA: didona de contraste extremo,
+     con remates finísimos y formas cursivas de pluma. Karla para interfaz:
+     grotesca con carácter, legible en tamaños pequeños y sin el aire genérico
+     de las neutras de sistema. */
+  --font-display: var(--font-playfair), "Times New Roman", Georgia, serif;
   --font-sans: var(--font-karla), system-ui, sans-serif;
 
   /* ── Radios ────────────────────────────────────────────────────────────
@@ -260,12 +260,13 @@
   h3 {
     font-family: var(--font-display);
     line-height: 1.2;
-    /* La ITÁLICA es la que da el aire semi-cursivo: en Instrument Serif no es
-       la redonda inclinada, sino un dibujo distinto, con enlaces de pluma.
-       Interletrado ligeramente negativo porque a tamaño grande esta serif se
-       ve suelta con el espaciado por defecto. */
+    /* La ITÁLICA da el aire semi-cursivo: no es la redonda inclinada, sino un
+       dibujo distinto con enlaces de pluma.
+
+       Peso 500 y no 400: en una didona el trazo fino es MUY fino, y a peso
+       normal sobre carbón se rompe y el titular se ve descolorido. */
     font-style: italic;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: -0.01em;
   }
 

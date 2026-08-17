@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Karla } from "next/font/google";
+import { Karla, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 /**
@@ -20,21 +20,23 @@ const karla = Karla({
 });
 
 /**
- * Instrument Serif para títulos, y se usa en ITÁLICA.
+ * Playfair Display para títulos, y se usa en ITÁLICA.
  *
- * Su itálica no es la redonda inclinada: tiene formas propias, con enlaces y
- * remates que vienen de la escritura a mano. Es lo que da ese aire semi-cursivo
- * sin caer en una tipografía de caligrafía, que a tamaño grande se lee mal y
- * envejece fatal.
+ * Es una didona: contraste extremo entre el trazo grueso y el fino, y remates
+ * finísimos y horizontales. De ahí su aire de revista y de portada de libro.
  *
- * Solo trae un peso, y es correcto para un display: una serif de alto contraste
- * en negrita se empasta y pierde justo los trazos finos que la hacen elegante.
+ * Su itálica no es la redonda inclinada — tiene formas propias, con enlaces de
+ * pluma, que es lo que da el aire semi-cursivo pedido.
+ *
+ * SE PIDEN PESOS ALTOS. En una didona el trazo fino es MUY fino; a peso normal
+ * y sobre carbón, esos trazos se rompen y el titular parece descolorido. A 500
+ * y 600 el contraste se mantiene pero la letra aguanta el fondo oscuro.
  */
-const instrumentSerif = Instrument_Serif({
+const playfair = Playfair_Display({
   subsets: ["latin"],
-  variable: "--font-instrument",
+  variable: "--font-playfair",
   display: "swap",
-  weight: "400",
+  weight: ["500", "600"],
   style: ["normal", "italic"],
 });
 
@@ -62,7 +64,7 @@ export default function RootLayout({
     <html
       lang="es-MX"
       data-tema="oscuro"
-      className={`${karla.variable} ${instrumentSerif.variable}`}
+      className={`${karla.variable} ${playfair.variable}`}
     >
       <body>{children}</body>
     </html>
